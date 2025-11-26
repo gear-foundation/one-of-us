@@ -1,0 +1,26 @@
+[workspace]
+
+members = ["client"]
+
+
+[package]
+name = "one-of-us"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+one-of-us-app = { path = "app" }
+
+[build-dependencies]
+one-of-us-app = { path = "app" }
+sails-rs = { version = "0.9.2", features = ["wasm-builder"] }
+sails-idl-gen = "0.9.2"
+
+[dev-dependencies]
+one-of-us = { path = ".", features = ["wasm-binary"] }
+one-of-us-client = { path = "client" }
+sails-rs = { version = "0.9.2", features = ["gtest"] }
+tokio = { version = "1.41", features = ["rt", "macros"] }
+
+[features]
+wasm-binary = []
