@@ -3,7 +3,10 @@
 use core::cell::{Ref, RefMut};
 use sails_rs::{cell::RefCell, collections::BTreeSet, gstd::msg, prelude::*};
 
-type Address = [u16; 16];
+// ActorId в сыром виде - это просто [u8; 32]
+// Для Sails с ethexe фичей нужно использовать тип который имплементирует SolValue
+// Используем обертку вокруг массива байт
+type Address = [u8; 32];
 
 struct SyncRefCell<T>(RefCell<T>);
 unsafe impl<T> Sync for SyncRefCell<T> {}
@@ -48,12 +51,7 @@ impl OneOfUsService {
 impl OneOfUsService {
     #[export]
     pub fn join_us(&mut self) -> bool {
-        let actor_id: [u8; 32] = msg::source().into();
-        // Конвертируем [u8; 32] в [u16; 16]
-        let mut sender = [0u16; 16];
-        for i in 0..16 {
-            sender[i] = u16::from_be_bytes([actor_id[i * 2], actor_id[i * 2 + 1]]);
-        }
+        let sender: Address = msg::source().into();
         let mut state = OneOfUsState::get_mut();
 
         if state.registered.contains(&sender) {
