@@ -5,6 +5,7 @@ ethexe
 Cargo.lock
 
 # Frontend
+frontend/
 frontend/node_modules/
 frontend/build/
 frontend/dist/
