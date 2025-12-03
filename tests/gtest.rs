@@ -1,7 +1,7 @@
 use sails_rs::{
+    ActorId,
     client::{Deployment, GtestEnv},
     gtest::System,
-    ActorId,
 };
 
 use one_of_us_client::{OneOfUs, OneOfUsCtors, OneOfUsProgram, one_of_us::OneOfUs as OneOfUsService};
@@ -25,7 +25,7 @@ async fn join_works() {
     let env = GtestEnv::new(system, ACTOR_ID.into());
 
     let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
-    
+
     let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
     let actor = deployment.init().await.unwrap();
     let mut service = actor.one_of_us();
@@ -41,7 +41,7 @@ async fn join_twice_returns_false() {
     let env = GtestEnv::new(system, ACTOR_ID.into());
 
     let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
-    
+
     let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
     let actor = deployment.init().await.unwrap();
     let mut service = actor.one_of_us();
@@ -60,7 +60,7 @@ async fn count_works() {
     let env = GtestEnv::new(system, ACTOR_ID.into());
 
     let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
-    
+
     let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
     let actor = deployment.init().await.unwrap();
     let mut service = actor.one_of_us();
@@ -81,7 +81,7 @@ async fn is_one_of_us_works() {
     let env = GtestEnv::new(system, ACTOR_ID.into());
 
     let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
-    
+
     let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
     let actor = deployment.init().await.unwrap();
     let mut service = actor.one_of_us();
@@ -103,7 +103,7 @@ async fn list_works() {
     let env = GtestEnv::new(system, ACTOR_ID.into());
 
     let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
-    
+
     let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
     let actor = deployment.init().await.unwrap();
     let mut service = actor.one_of_us();

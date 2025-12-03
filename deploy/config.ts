@@ -3,7 +3,6 @@ import 'dotenv/config';
 export const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 export const ROUTER_ADDRESS = process.env.ROUTER_ADDRESS as `0x${string}`;
 export const WVARA_ADDRESS = process.env.WVARA_ADDRESS as `0x${string}`;
-export const RPC_URL = process.env.RPC_URL!;
 export const VARA_ETH_WS =
   process.env.VARA_ETH_WS || 'ws://vara-eth-validator-1.gear-tech.io:9944';
 export const ETH_RPC = process.env.ETH_RPC!;

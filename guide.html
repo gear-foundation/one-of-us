@@ -452,14 +452,36 @@
       <h2>Introduction</h2>
 
       <p>
-        In this guide, we'll dive into deploying and running actual WASM programs on Ethereum through Vara.eth. The idea
-        is straightforward: write your program in Rust, compile it to WASM, and execute it in a high-performance
-        parallel environment — while keeping Ethereum as the settlement and security layer.
+        <strong>Be One of Us. Let's make Ethereum run real programs.</strong>
       </p>
 
       <p>
-        <strong>No Layer 2, no new chains, no liquidity fragmentation, and no extra trust assumptions.</strong> Just
-        Ethereum's security model and liquidity, with a compute layer that finally lets your app breathe.
+        In this guide, we'll dive into the process of deploying and running actual WASM programs on Ethereum through
+        Vara.eth. The idea is straightforward: you write your program in Rust, compile it to WASM, and then execute it
+        in a high-performance parallel environment — while keeping Ethereum as the settlement and security layer. No
+        Layer 2, no new chains, no liquidity fragmentation, and no extra trust assumptions. Just Ethereum's security
+        model and liquidity, with a compute layer that finally lets your app breathe.
+      </p>
+
+      <p>
+        Vara.eth also brings a new execution feel to L1 apps: alongside canonical Ethereum finality, programs can return
+        <strong>pre-confirmations</strong> — fast, cryptographically backed acknowledgements from executors that arrive
+        in near real time. That means your users can experience Web2-like responsiveness while still ending up with
+        Ethereum-level settlement security (which opens up a whole new space of application designs that simply weren't
+        practical on sequential L1 execution).
+      </p>
+
+      <p>
+        This guide is for developers who want to build Ethereum-native applications but need more than sequential
+        smart-contract execution can realistically offer. We'll stay practical from the first step. You'll take a real
+        Gear program, upload and validate its WASM on Ethereum, create a program instance, and then interact with it
+        from a normal dApp flow. We'll send messages, read state, and verify that everything works end-to-end from the
+        user side — including a simple MetaMask interaction so you can feel the loop as a real Ethereum developer would.
+      </p>
+
+      <p>
+        By the end, you'll have a running Vara.eth program anchored to Ethereum, a clear mental model of how execution
+        and finalization work, and a template you can reuse to ship your own high-performance apps without leaving L1.
       </p>
 
       <div class="callout callout-info">

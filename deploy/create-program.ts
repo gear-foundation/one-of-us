@@ -75,7 +75,7 @@ async function main() {
   console.log('Program ID:', programId);
 
   console.log('\n✓ Done! Add to .env: PROGRAM_ID=' + programId);
-  console.log('Next: npm run fund → npm run init → npm test');
+  console.log('Next: npm run fund → npm run init → npm run classic');
 }
 
 main().catch((error) => {

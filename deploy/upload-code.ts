@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
-import { EthereumClient, getRouterClient } from '@vara-eth/api';
+import { EthereumClient } from '@vara-eth/api';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -46,8 +46,13 @@ async function main() {
     process.exit(1);
   }
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
-  const router = getRouterClient(ROUTER_ADDRESS, ethereumClient);
+  const ethereumClient = new EthereumClient(
+    publicClient,
+    walletClient,
+    ROUTER_ADDRESS
+  );
+  await ethereumClient.isInitialized;
+  const router = ethereumClient.router;
 
   console.log('\nReading WASM file...');
   const wasmCode = readFileSync(WASM_PATH);

@@ -56,7 +56,7 @@ async function main() {
   const parser = await SailsIdlParser.new();
   const sails = new Sails(parser);
   const idl = readFileSync(IDL_PATH, 'utf-8');
-  sails.parseIdl(idl);
+  await sails.parseIdl(idl);
 
   const payload = sails.services.OneOfUs.functions.JoinUs.encodePayload();
   console.log('Payload:', '0x' + Buffer.from(payload).toString('hex'));

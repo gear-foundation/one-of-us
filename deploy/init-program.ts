@@ -78,7 +78,7 @@ async function main() {
   console.log('Reply received:', reply);
 
   console.log('✓ Program initialized');
-  console.log('Next: npm test');
+  console.log('Next: npm run classic or npm run injected');
 }
 
 main().catch((error) => {
