@@ -8,7 +8,9 @@
     "create": "ts-node create-program.ts",
     "fund": "ts-node fund-program.ts",
     "init": "ts-node init-program.ts",
-    "test": "ts-node test-injected.ts"
+    "classic": "ts-node classic-tx.ts",
+    "injected": "ts-node test-injected.ts",
+    "state": "ts-node read-state.ts"
   },
   "keywords": [],
   "author": "",
