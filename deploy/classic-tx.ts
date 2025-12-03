@@ -35,16 +35,18 @@ async function main() {
   console.log('Account:', account.address);
   console.log('Program:', PROGRAM_ID);
 
-  // Use WebSocket for subscriptions (reply listener)
+  // Both clients need same transport type for getMirrorClient
+  const transport = webSocket(ETH_RPC_WS);
+
   const publicClient = createPublicClient({
     chain: hoodi,
-    transport: webSocket(ETH_RPC_WS),
+    transport,
   });
 
   const walletClient = createWalletClient({
     account,
     chain: hoodi,
-    transport: http(ETH_RPC),
+    transport,
   });
 
   const ethereumClient = new EthereumClient(
