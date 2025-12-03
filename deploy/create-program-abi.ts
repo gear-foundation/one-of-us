@@ -50,7 +50,11 @@ async function main() {
     process.exit(1);
   }
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  const ethereumClient = new EthereumClient(
+    publicClient,
+    walletClient,
+    ROUTER_ADDRESS
+  );
   await ethereumClient.isInitialized;
   const router = ethereumClient.router;
 
@@ -111,4 +115,3 @@ main().catch((error) => {
   console.error('Error:', error.message);
   process.exit(1);
 });
-

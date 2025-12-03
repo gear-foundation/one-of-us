@@ -1,6 +1,10 @@
-use sails_rs::{calls::*, gtest::{calls::*, System}, ActorId};
+use sails_rs::{
+    client::{Deployment, GtestEnv},
+    gtest::System,
+    ActorId,
+};
 
-use one_of_us_client::traits::*;
+use one_of_us_client::{OneOfUs, OneOfUsCtors, OneOfUsProgram, one_of_us::OneOfUs as OneOfUsService};
 
 const ACTOR_ID: u64 = 42;
 
@@ -18,25 +22,15 @@ fn actor_id_to_address(id: ActorId) -> [u16; 16] {
 async fn join_works() {
     let system = System::new();
     system.mint_to(ACTOR_ID, 100_000_000_000_000);
-    let remoting = GTestRemoting::new(system, ACTOR_ID.into());
+    let env = GtestEnv::new(system, ACTOR_ID.into());
 
-    let program_code_id = remoting.system().submit_code(one_of_us::WASM_BINARY);
-    let program_factory = one_of_us_client::OneOfUsFactory::new(remoting.clone());
+    let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
+    
+    let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
+    let actor = deployment.init().await.unwrap();
+    let mut service = actor.one_of_us();
 
-    let program_id = program_factory
-        .new()
-        .send_recv(program_code_id, b"salt")
-        .await
-        .unwrap();
-
-    let mut service_client = one_of_us_client::OneOfUs::new(remoting.clone());
-
-    let result = service_client
-        .join_us()
-        .send_recv(program_id)
-        .await
-        .unwrap();
-
+    let result = service.join_us().await.unwrap();
     assert_eq!(result, true);
 }
 
@@ -44,23 +38,18 @@ async fn join_works() {
 async fn join_twice_returns_false() {
     let system = System::new();
     system.mint_to(ACTOR_ID, 100_000_000_000_000);
-    let remoting = GTestRemoting::new(system, ACTOR_ID.into());
+    let env = GtestEnv::new(system, ACTOR_ID.into());
 
-    let program_code_id = remoting.system().submit_code(one_of_us::WASM_BINARY);
-    let program_factory = one_of_us_client::OneOfUsFactory::new(remoting.clone());
+    let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
+    
+    let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
+    let actor = deployment.init().await.unwrap();
+    let mut service = actor.one_of_us();
 
-    let program_id = program_factory
-        .new()
-        .send_recv(program_code_id, b"salt")
-        .await
-        .unwrap();
-
-    let mut service_client = one_of_us_client::OneOfUs::new(remoting.clone());
-
-    let result = service_client.join_us().send_recv(program_id).await.unwrap();
+    let result = service.join_us().await.unwrap();
     assert_eq!(result, true);
 
-    let result = service_client.join_us().send_recv(program_id).await.unwrap();
+    let result = service.join_us().await.unwrap();
     assert_eq!(result, false);
 }
 
@@ -68,25 +57,20 @@ async fn join_twice_returns_false() {
 async fn count_works() {
     let system = System::new();
     system.mint_to(ACTOR_ID, 100_000_000_000_000);
-    let remoting = GTestRemoting::new(system, ACTOR_ID.into());
+    let env = GtestEnv::new(system, ACTOR_ID.into());
 
-    let program_code_id = remoting.system().submit_code(one_of_us::WASM_BINARY);
-    let program_factory = one_of_us_client::OneOfUsFactory::new(remoting.clone());
+    let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
+    
+    let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
+    let actor = deployment.init().await.unwrap();
+    let mut service = actor.one_of_us();
 
-    let program_id = program_factory
-        .new()
-        .send_recv(program_code_id, b"salt")
-        .await
-        .unwrap();
-
-    let mut service_client = one_of_us_client::OneOfUs::new(remoting.clone());
-
-    let count = service_client.count().recv(program_id).await.unwrap();
+    let count = service.count().query().unwrap();
     assert_eq!(count, 0);
 
-    service_client.join_us().send_recv(program_id).await.unwrap();
+    service.join_us().await.unwrap();
 
-    let count = service_client.count().recv(program_id).await.unwrap();
+    let count = service.count().query().unwrap();
     assert_eq!(count, 1);
 }
 
@@ -94,26 +78,21 @@ async fn count_works() {
 async fn is_one_of_us_works() {
     let system = System::new();
     system.mint_to(ACTOR_ID, 100_000_000_000_000);
-    let remoting = GTestRemoting::new(system, ACTOR_ID.into());
+    let env = GtestEnv::new(system, ACTOR_ID.into());
 
-    let program_code_id = remoting.system().submit_code(one_of_us::WASM_BINARY);
-    let program_factory = one_of_us_client::OneOfUsFactory::new(remoting.clone());
-
-    let program_id = program_factory
-        .new()
-        .send_recv(program_code_id, b"salt")
-        .await
-        .unwrap();
-
-    let mut service_client = one_of_us_client::OneOfUs::new(remoting.clone());
+    let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
+    
+    let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
+    let actor = deployment.init().await.unwrap();
+    let mut service = actor.one_of_us();
 
     let address = actor_id_to_address(ACTOR_ID.into());
-    let is_member = service_client.is_one_of_us(address).recv(program_id).await.unwrap();
+    let is_member = service.is_one_of_us(address).query().unwrap();
     assert_eq!(is_member, false);
 
-    service_client.join_us().send_recv(program_id).await.unwrap();
+    service.join_us().await.unwrap();
 
-    let is_member = service_client.is_one_of_us(address).recv(program_id).await.unwrap();
+    let is_member = service.is_one_of_us(address).query().unwrap();
     assert_eq!(is_member, true);
 }
 
@@ -121,25 +100,19 @@ async fn is_one_of_us_works() {
 async fn list_works() {
     let system = System::new();
     system.mint_to(ACTOR_ID, 100_000_000_000_000);
+    let env = GtestEnv::new(system, ACTOR_ID.into());
+
+    let program_code_id = env.system().submit_code(one_of_us::WASM_BINARY);
     
-    let remoting = GTestRemoting::new(system, ACTOR_ID.into());
-
-    let program_code_id = remoting.system().submit_code(one_of_us::WASM_BINARY);
-    let program_factory = one_of_us_client::OneOfUsFactory::new(remoting.clone());
-
-    let program_id = program_factory
-        .new()
-        .send_recv(program_code_id, b"salt")
-        .await
-        .unwrap();
-
-    let mut service_client = one_of_us_client::OneOfUs::new(remoting.clone());
+    let deployment = Deployment::<OneOfUsProgram, _>::new(env.clone(), program_code_id, b"salt".to_vec());
+    let actor = deployment.init().await.unwrap();
+    let mut service = actor.one_of_us();
 
     // Add builder
-    service_client.join_us().send_recv(program_id).await.unwrap();
+    service.join_us().await.unwrap();
 
     // Get list
-    let list = service_client.list(0, 100).recv(program_id).await.unwrap();
+    let list = service.list(0, 100).query().unwrap();
     assert_eq!(list.len(), 1);
     assert_eq!(list[0], actor_id_to_address(ACTOR_ID.into()));
 }
