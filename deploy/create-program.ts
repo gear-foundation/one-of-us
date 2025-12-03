@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
-import { EthereumClient, getRouterClient } from '@vara-eth/api';
+import { EthereumClient } from '@vara-eth/api';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -40,8 +40,10 @@ async function main() {
   const balance = await publicClient.getBalance({ address: account.address });
   console.log('Balance:', (Number(balance) / 1e18).toFixed(4), 'ETH');
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
-  const router = getRouterClient(ROUTER_ADDRESS, ethereumClient);
+  // v0.0.2: EthereumClient now takes routerAddress and auto-initializes router/wvara
+  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  await ethereumClient.isInitialized;
+  const router = ethereumClient.router;
 
   console.log('\nCreating program...');
   console.log('Code ID:', CODE_ID);

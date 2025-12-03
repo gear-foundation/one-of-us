@@ -55,14 +55,15 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
+  // v0.0.2: EthereumClient now takes routerAddress
+  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  await ethereumClient.isInitialized;
   const mirror = getMirrorClient(PROGRAM_ID, ethereumClient);
 
-  // Connect to Vara.eth API
+  // v0.0.2: VaraEthApi no longer requires routerAddress
   const api = new VaraEthApi(
     new WsVaraEthProvider(VARA_ETH_WS as `ws://${string}` | `wss://${string}`),
-    ethereumClient,
-    ROUTER_ADDRESS
+    ethereumClient
   );
 
   // Get the current state hash from Ethereum (Mirror contract)

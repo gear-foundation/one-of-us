@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
-import { EthereumClient, getRouterClient } from '@vara-eth/api';
+import { EthereumClient } from '@vara-eth/api';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -50,8 +50,10 @@ async function main() {
     process.exit(1);
   }
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
-  const router = getRouterClient(ROUTER_ADDRESS, ethereumClient);
+  // v0.0.2: EthereumClient now takes routerAddress and provides router client
+  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  await ethereumClient.isInitialized;
+  const router = ethereumClient.router;
 
   // Step 1: Deploy Solidity ABI contract
   console.log('\n=== Step 1: Deploy Solidity ABI Contract ===');

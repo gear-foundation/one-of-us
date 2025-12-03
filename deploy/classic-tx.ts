@@ -7,6 +7,7 @@ import { Sails } from 'sails-js';
 import { SailsIdlParser } from 'sails-js-parser';
 import {
   PRIVATE_KEY,
+  ROUTER_ADDRESS,
   ETH_RPC,
   ETH_RPC_WS,
   PROGRAM_ID,
@@ -46,7 +47,9 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
+  // v0.0.2: EthereumClient now takes routerAddress
+  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  await ethereumClient.isInitialized;
   const mirror = getMirrorClient(PROGRAM_ID, ethereumClient);
 
   // Initialize Sails from program IDL

@@ -10,7 +10,6 @@ import {
   EthereumClient,
   VaraEthApi,
   WsVaraEthProvider,
-  InjectedTransaction,
 } from '@vara-eth/api';
 import { Sails } from 'sails-js';
 import { SailsIdlParser } from 'sails-js-parser';
@@ -41,15 +40,18 @@ async function main() {
     chain,
     transport: http(ETH_RPC),
   });
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
+  
+  // v0.0.2: EthereumClient now takes routerAddress
+  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  await ethereumClient.isInitialized;
 
   console.log('Account:', account.address);
   console.log('Program:', PROGRAM_ID);
 
+  // v0.0.2: VaraEthApi no longer requires routerAddress
   const api = new VaraEthApi(
     new WsVaraEthProvider(VARA_ETH_WS as `ws://${string}` | `wss://${string}`),
-    ethereumClient,
-    ROUTER_ADDRESS
+    ethereumClient
   );
 
   const parser = await SailsIdlParser.new();
@@ -60,13 +62,12 @@ async function main() {
   const payload = sails.services.OneOfUs.functions.JoinUs.encodePayload();
   console.log('Payload:', '0x' + Buffer.from(payload).toString('hex'));
 
-  const injected = await api.createInjectedTransaction(
-    new InjectedTransaction({
-      destination: PROGRAM_ID as `0x${string}`,
-      payload: payload as `0x${string}`,
-      value: 0n,
-    })
-  );
+  // v0.0.2: InjectedTransaction class removed, pass params directly
+  const injected = await api.createInjectedTransaction({
+    destination: PROGRAM_ID as `0x${string}`,
+    payload: payload as `0x${string}`,
+    value: 0n,
+  });
 
   console.log('Sending...');
   const result = await injected.sendAndWaitForPromise();

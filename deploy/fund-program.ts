@@ -1,14 +1,10 @@
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
-import {
-  EthereumClient,
-  getMirrorClient,
-  getWrappedVaraClient,
-} from '@vara-eth/api';
+import { EthereumClient, getMirrorClient } from '@vara-eth/api';
 import {
   PRIVATE_KEY,
-  WVARA_ADDRESS,
+  ROUTER_ADDRESS,
   ETH_RPC,
   PROGRAM_ID,
   HOODI_CHAIN_ID,
@@ -47,8 +43,10 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  const ethereumClient = new EthereumClient(publicClient, walletClient);
-  const wvara = getWrappedVaraClient(WVARA_ADDRESS, ethereumClient);
+  // v0.0.2: EthereumClient now takes routerAddress and provides wvara client
+  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
+  await ethereumClient.isInitialized;
+  const wvara = ethereumClient.wvara;
   const mirror = getMirrorClient(PROGRAM_ID, ethereumClient);
 
   const wvaraBalance = await wvara.balanceOf(account.address);
