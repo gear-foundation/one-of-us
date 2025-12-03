@@ -6,6 +6,7 @@
   "scripts": {
     "upload": "ts-node upload-code.ts",
     "create": "ts-node create-program.ts",
+    "compile:sol": "ts-node compile-sol.ts",
     "create:abi": "ts-node create-program-abi.ts",
     "fund": "ts-node fund-program.ts",
     "init": "ts-node init-program.ts",

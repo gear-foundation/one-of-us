@@ -1,82 +1,10 @@
 /**
- * Generated from OneOfUs.sol
+ * Auto-generated from OneOfUs.sol
+ * Generated: 2025-12-03T14:36:26.650Z
  * 
- * To regenerate:
- * 1. Compile OneOfUs.sol with solc or use Remix
- * 2. Copy ABI and bytecode here
- * 
- * Or use: npx solc --abi --bin OneOfUs.sol
+ * To regenerate: npx ts-node compile-sol.ts
  */
 
-export const oneOfUsAbi = [
-  {
-    inputs: [
-      { internalType: 'uint128', name: '_value', type: 'uint128' },
-      { internalType: 'bool', name: '_callReply', type: 'bool' },
-    ],
-    name: 'init',
-    outputs: [{ internalType: 'bytes32', name: 'messageId', type: 'bytes32' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint128', name: '_value', type: 'uint128' },
-      { internalType: 'bool', name: '_callReply', type: 'bool' },
-    ],
-    name: 'oneOfUsJoinUs',
-    outputs: [{ internalType: 'bytes32', name: 'messageId', type: 'bytes32' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint128', name: '_value', type: 'uint128' },
-      { internalType: 'bool', name: '_callReply', type: 'bool' },
-    ],
-    name: 'oneOfUsCount',
-    outputs: [{ internalType: 'bytes32', name: 'messageId', type: 'bytes32' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint128', name: '_value', type: 'uint128' },
-      { internalType: 'bool', name: '_callReply', type: 'bool' },
-      { internalType: 'uint16[16]', name: 'addr', type: 'uint16[16]' },
-    ],
-    name: 'oneOfUsIsOneOfUs',
-    outputs: [{ internalType: 'bytes32', name: 'messageId', type: 'bytes32' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint128', name: '_value', type: 'uint128' },
-      { internalType: 'bool', name: '_callReply', type: 'bool' },
-      { internalType: 'uint32', name: 'page', type: 'uint32' },
-      { internalType: 'uint32', name: 'pageSize', type: 'uint32' },
-    ],
-    name: 'oneOfUsList',
-    outputs: [{ internalType: 'bytes32', name: 'messageId', type: 'bytes32' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint128', name: '_value', type: 'uint128' },
-      { internalType: 'bool', name: '_callReply', type: 'bool' },
-    ],
-    name: 'oneOfUsVersion',
-    outputs: [{ internalType: 'bytes32', name: 'messageId', type: 'bytes32' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const;
+export const oneOfUsAbi = [{"inputs":[{"internalType":"uint128","name":"_value","type":"uint128"},{"internalType":"bool","name":"_callReply","type":"bool"}],"name":"init","outputs":[{"internalType":"bytes32","name":"messageId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint128","name":"_value","type":"uint128"},{"internalType":"bool","name":"_callReply","type":"bool"}],"name":"oneOfUsCount","outputs":[{"internalType":"bytes32","name":"messageId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint128","name":"_value","type":"uint128"},{"internalType":"bool","name":"_callReply","type":"bool"},{"internalType":"uint16[16]","name":"addr","type":"uint16[16]"}],"name":"oneOfUsIsOneOfUs","outputs":[{"internalType":"bytes32","name":"messageId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint128","name":"_value","type":"uint128"},{"internalType":"bool","name":"_callReply","type":"bool"}],"name":"oneOfUsJoinUs","outputs":[{"internalType":"bytes32","name":"messageId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint128","name":"_value","type":"uint128"},{"internalType":"bool","name":"_callReply","type":"bool"},{"internalType":"uint32","name":"page","type":"uint32"},{"internalType":"uint32","name":"pageSize","type":"uint32"}],"name":"oneOfUsList","outputs":[{"internalType":"bytes32","name":"messageId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint128","name":"_value","type":"uint128"},{"internalType":"bool","name":"_callReply","type":"bool"}],"name":"oneOfUsVersion","outputs":[{"internalType":"bytes32","name":"messageId","type":"bytes32"}],"stateMutability":"nonpayable","type":"function"}] as const;
 
-// Bytecode from compiled OneOfUsAbi contract
-// Compile with: npx solc --bin OneOfUs.sol --output-dir ./compiled
-// Or use Remix IDE to compile and copy bytecode
-export const oneOfUsBytecode =
-  '0x608060405234801561001057600080fd5b50610200806100206000396000f3fe608060405234801561001057600080fd5b50600436106100625760003560e01c806312345678146100675780631234567814610067578063234567891461006757806334567890146100675780634567890a1461006757806356789012610067575b600080fd5b6040516000815260200160405180910390f35b' as `0x${string}`;
-
+export const oneOfUsBytecode = '0x6080604052348015600e575f5ffd5b506103e78061001c5f395ff3fe608060405234801561000f575f5ffd5b5060043610610060575f3560e01c80634de81484146100645780635d84568514610094578063a58e7fc1146100c4578063b19731dc146100f4578063b5c40c5814610124578063db52686814610154575b5f5ffd5b61007e6004803603810190610079919061022f565b610184565b60405161008b9190610285565b60405180910390f35b6100ae60048036038101906100a9919061022f565b61018b565b6040516100bb9190610285565b60405180910390f35b6100de60048036038101906100d9919061022f565b610192565b6040516100eb9190610285565b60405180910390f35b61010e600480360381019061010991906102c3565b610199565b60405161011b9190610285565b60405180910390f35b61013e6004803603810190610139919061034d565b6101a1565b60405161014b9190610285565b60405180910390f35b61016e6004803603810190610169919061022f565b6101aa565b60405161017b9190610285565b60405180910390f35b5f92915050565b5f92915050565b5f92915050565b5f9392505050565b5f949350505050565b5f92915050565b5f5ffd5b5f6fffffffffffffffffffffffffffffffff82169050919050565b6101d9816101b5565b81146101e3575f5ffd5b50565b5f813590506101f4816101d0565b92915050565b5f8115159050919050565b61020e816101fa565b8114610218575f5ffd5b50565b5f8135905061022981610205565b92915050565b5f5f60408385031215610245576102446101b1565b5b5f610252858286016101e6565b92505060206102638582860161021b565b9150509250929050565b5f819050919050565b61027f8161026d565b82525050565b5f6020820190506102985f830184610276565b92915050565b5f5ffd5b5f819050826020601002820111156102bd576102bc61029e565b5b92915050565b5f5f5f61024084860312156102db576102da6101b1565b5b5f6102e8868287016101e6565b93505060206102f98682870161021b565b925050604061030a868287016102a2565b9150509250925092565b5f63ffffffff82169050919050565b61032c81610314565b8114610336575f5ffd5b50565b5f8135905061034781610323565b92915050565b5f5f5f5f60808587031215610365576103646101b1565b5b5f610372878288016101e6565b94505060206103838782880161021b565b935050604061039487828801610339565b92505060606103a587828801610339565b9150509295919450925056fea2646970667358221220a4a8cbd31db2fc66a33b8033030db683515898598d5aba3f140b3b4ec0a0ca1064736f6c634300081e0033' as `0x${string}`;

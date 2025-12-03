@@ -654,20 +654,18 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
       <h3>Option 2: Create Program with Solidity ABI Interface</h3>
 
       <p>
-        If you want to interact with your Vara.eth program using a familiar Solidity ABI (for example, from other smart contracts 
-        or Ethereum tooling), you can create the program with an ABI interface. This requires deploying a Solidity contract 
-        that defines the interface, then linking it during program creation.
+        If you want to interact with your Vara.eth program using a familiar Solidity ABI (for example, from other smart
+        contracts or Ethereum tooling), you can create the program with an ABI interface. This requires deploying a
+        Solidity contract that defines the interface, then linking it during program creation.
       </p>
 
-      <p>
-        First, generate the Solidity interface from your program's IDL:
-      </p>
+      <p>First, generate the Solidity interface from your program's IDL:</p>
 
       <pre data-lang="bash"><code>cargo sails sol --idl-path ./target/wasm32-gear/release/your_program.idl</code></pre>
 
       <p>
-        This generates a <code>.sol</code> file with the interface, ABI contract, and callback definitions. 
-        Deploy the ABI contract and use its address when creating the program:
+        This generates a <code>.sol</code> file with the interface, ABI contract, and callback definitions. Deploy the
+        ABI contract and use its address when creating the program:
       </p>
 
       <a
@@ -711,8 +709,8 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
 }</code></pre>
 
       <p>
-        With the ABI interface, you can interact with your Vara.eth program using standard Ethereum tools, 
-        Solidity contracts, or any library that supports contract ABIs.
+        With the ABI interface, you can interact with your Vara.eth program using standard Ethereum tools, Solidity
+        contracts, or any library that supports contract ABIs.
       </p>
     </section>
 
