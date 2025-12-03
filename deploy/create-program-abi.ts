@@ -50,7 +50,6 @@ async function main() {
     process.exit(1);
   }
 
-  // v0.0.2: EthereumClient now takes routerAddress and provides router client
   const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
   await ethereumClient.isInitialized;
   const router = ethereumClient.router;

@@ -40,7 +40,6 @@ async function main() {
   const balance = await publicClient.getBalance({ address: account.address });
   console.log('Balance:', (Number(balance) / 1e18).toFixed(4), 'ETH');
 
-  // v0.0.2: EthereumClient now takes routerAddress and auto-initializes router/wvara
   const ethereumClient = new EthereumClient(
     publicClient,
     walletClient,

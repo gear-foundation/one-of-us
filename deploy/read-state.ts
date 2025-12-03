@@ -55,7 +55,6 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  // v0.0.2: EthereumClient now takes routerAddress
   const ethereumClient = new EthereumClient(
     publicClient,
     walletClient,
@@ -64,7 +63,6 @@ async function main() {
   await ethereumClient.isInitialized;
   const mirror = getMirrorClient(PROGRAM_ID, ethereumClient);
 
-  // v0.0.2: VaraEthApi no longer requires routerAddress
   const api = new VaraEthApi(
     new WsVaraEthProvider(VARA_ETH_WS as `ws://${string}` | `wss://${string}`),
     ethereumClient

@@ -47,7 +47,6 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  // v0.0.2: EthereumClient now takes routerAddress
   const ethereumClient = new EthereumClient(
     publicClient,
     walletClient,
