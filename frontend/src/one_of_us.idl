@@ -1,0 +1,11 @@
+constructor {
+  New : ();
+};
+
+service OneOfUs {
+  JoinUs : () -> bool;
+  query Count : () -> u32;
+  query IsOneOfUs : (address: [u16, 16]) -> bool;
+  query List : (page: u32, page_size: u32) -> vec [u16, 16];
+};
+

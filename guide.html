@@ -186,7 +186,7 @@
         color: var(--code-function);
       }
       .number {
-        color: var(--code-number);
+        color: var(--number);
       }
       .comment {
         color: var(--code-comment);
@@ -690,25 +690,30 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
   console.<span class="function">log</span>(<span class="string">'Program ID:'</span>, programId);
 }</code></pre>
 
-      <h3>Option 2: Create Program with Solidity ABI Interface</h3>
+      <h3>Option 2: Create Program with Solidity ABI Interface (Foundry)</h3>
 
       <p>
         If you want to interact with your Vara.eth program using a familiar Solidity ABI (for example, from other smart
-        contracts or Ethereum tooling), you can create the program with an ABI interface. This requires deploying a
-        Solidity contract that defines the interface, then linking it during program creation.
+        contracts or Ethereum tooling), you can create the program with an ABI interface. We use <strong>Foundry</strong> 
+        for deploying and verifying the ABI contract — it handles compilation, deployment, and Etherscan verification in one step.
       </p>
 
-      <p>First, generate the Solidity interface from your program's IDL:</p>
+      <h4>Install Foundry</h4>
+      <pre data-lang="bash"><code><span class="comment"># Install Foundry</span>
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
 
-      <pre data-lang="bash"><code>cargo sails sol --idl-path ./target/wasm32-gear/release/your_program.idl</code></pre>
+<span class="comment"># Install dependencies (from project root)</span>
+forge install</code></pre>
 
-      <p>
-        This generates a <code>.sol</code> file with the interface, ABI contract, and callback definitions. Next, compile
-        the Solidity file to generate TypeScript ABI:
-      </p>
+      <h4>Generate Solidity Interface</h4>
+      <pre data-lang="bash"><code>cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl</code></pre>
+
+      <h4>Foundry Deploy Script</h4>
+      <p>Create a deploy script at <code>deploy/DeployOneOfUsAbi.s.sol</code>:</p>
 
       <a
-        href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/compile-sol.ts"
+        href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/DeployOneOfUsAbi.s.sol"
         target="_blank"
         class="script-link"
       >
@@ -717,15 +722,33 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: compile-sol.ts
+        View full script: DeployOneOfUsAbi.s.sol
       </a>
 
-      <pre data-lang="bash"><code>npm run compile:sol</code></pre>
+      <pre data-lang="solidity"><code><span class="comment">// SPDX-License-Identifier: UNLICENSED</span>
+<span class="keyword">pragma solidity</span> ^0.8.28;
 
+<span class="keyword">import</span> {Script, console} <span class="keyword">from</span> <span class="string">"forge-std/Script.sol"</span>;
+<span class="keyword">import</span> {OneOfUsAbi} <span class="keyword">from</span> <span class="string">"../OneOfUs.sol"</span>;
+
+<span class="keyword">contract</span> <span class="type">DeployOneOfUsAbi</span> <span class="keyword">is</span> Script {
+    <span class="keyword">function</span> <span class="function">run</span>() <span class="keyword">external returns</span> (<span class="type">address</span>) {
+        <span class="type">bytes32</span> pkBytes = vm.<span class="function">envBytes32</span>(<span class="string">"PRIVATE_KEY"</span>);
+        <span class="type">uint256</span> deployerPrivateKey = <span class="type">uint256</span>(pkBytes);
+        
+        vm.<span class="function">startBroadcast</span>(deployerPrivateKey);
+
+        <span class="type">OneOfUsAbi</span> abiContract = <span class="keyword">new</span> <span class="type">OneOfUsAbi</span>();
+        console.<span class="function">log</span>(<span class="string">"OneOfUsAbi deployed at:"</span>, <span class="keyword">address</span>(abiContract));
+
+        vm.<span class="function">stopBroadcast</span>();
+        <span class="keyword">return address</span>(abiContract);
+    }
+}</code></pre>
+
+      <h4>Deploy and Create Program</h4>
       <p>
-        This compiles the Solidity contract using <code>solc</code> and generates <code>OneOfUsAbi.ts</code> with the ABI
-        and bytecode that can be imported in TypeScript. Then deploy the ABI contract and use its address when creating
-        the program:
+        The TypeScript script handles both deployment via Foundry and program creation:
       </p>
 
       <a
@@ -743,38 +766,67 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
 
       <pre
         data-lang="typescript"
-      ><code><span class="keyword">import</span> { EthereumClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-<span class="keyword">import</span> { oneOfUsAbi, oneOfUsBytecode } <span class="keyword">from</span> <span class="string">'./OneOfUsAbi'</span>;
+      ><code><span class="keyword">import</span> { execSync } <span class="keyword">from</span> <span class="string">'child_process'</span>;
+<span class="keyword">import</span> { EthereumClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
+
+<span class="keyword">function</span> <span class="function">deployWithForge</span>(): <span class="type">string</span> {
+  <span class="keyword">const</span> etherscanKey = process.env.ETHERSCAN_API_KEY;
+  <span class="keyword">const</span> verifyFlag = etherscanKey
+    ? <span class="string">`--verify --etherscan-api-key ${etherscanKey}`</span>
+    : <span class="string">''</span>;
+
+  <span class="keyword">const</span> output = <span class="function">execSync</span>(
+    <span class="string">`forge script deploy/DeployOneOfUsAbi.s.sol:DeployOneOfUsAbi \
+      --rpc-url ${ETH_RPC} \
+      --broadcast ${verifyFlag} -vvv`</span>,
+    { <span class="property">cwd</span>: projectRoot, <span class="property">encoding</span>: <span class="string">'utf-8'</span> }
+  );
+
+  <span class="comment">// Parse deployed address from output</span>
+  <span class="keyword">const</span> match = output.<span class="function">match</span>(<span class="string">/deployed at:\s*(0x[a-fA-F0-9]{40})/i</span>);
+  <span class="keyword">return</span> match[<span class="number">1</span>];
+}
 
 <span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="comment">// ... setup clients ...</span>
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-  <span class="keyword">const</span> router = ethereumClient.router;
-
-  <span class="comment">// Step 1: Deploy Solidity ABI contract</span>
-  <span class="keyword">const</span> deployHash = <span class="keyword">await</span> walletClient.<span class="function">deployContract</span>({
-    <span class="property">abi</span>: oneOfUsAbi,
-    <span class="property">bytecode</span>: oneOfUsBytecode,
-    account,
-  });
-
-  <span class="keyword">const</span> deployReceipt = <span class="keyword">await</span> publicClient.<span class="function">waitForTransactionReceipt</span>({ <span class="property">hash</span>: deployHash });
-  <span class="keyword">const</span> abiAddress = deployReceipt.contractAddress;
+  <span class="comment">// Step 1: Deploy ABI contract with Foundry</span>
+  <span class="keyword">const</span> abiAddress = <span class="function">deployWithForge</span>();
   console.<span class="function">log</span>(<span class="string">'ABI Contract deployed:'</span>, abiAddress);
 
   <span class="comment">// Step 2: Create program with ABI interface</span>
-  <span class="keyword">const</span> tx = <span class="keyword">await</span> router.<span class="function">createProgramWithAbiInterface</span>(CODE_ID, abiAddress);
-  <span class="keyword">const</span> receipt = <span class="keyword">await</span> tx.<span class="function">sendAndWaitForReceipt</span>();
+  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
+  <span class="keyword">await</span> ethereumClient.isInitialized;
 
+  <span class="keyword">const</span> tx = <span class="keyword">await</span> ethereumClient.router.<span class="function">createProgramWithAbiInterface</span>(
+    CODE_ID,
+    abiAddress
+  );
+  <span class="keyword">const</span> receipt = <span class="keyword">await</span> tx.<span class="function">sendAndWaitForReceipt</span>();
   <span class="keyword">const</span> programId = <span class="keyword">await</span> tx.<span class="function">getProgramId</span>();
+
   console.<span class="function">log</span>(<span class="string">'Program ID:'</span>, programId);
 }</code></pre>
 
+      <h4>Link Mirror as Proxy on Etherscan</h4>
+
       <p>
-        With the ABI interface, you can interact with your Vara.eth program using standard Ethereum tools, Solidity
-        contracts, or any library that supports contract ABIs.
+        After deployment, you need to link the Mirror contract (your <code>PROGRAM_ID</code>) to the ABI contract on Etherscan.
+        This enables the familiar Read/Write Contract interface on your Mirror.
       </p>
+
+      <div class="callout callout-info">
+        <div class="callout-title">🔗 How to link</div>
+        <p>
+          1. Go to your <code>PROGRAM_ID</code> (Mirror address) on <a href="https://hoodi.etherscan.io" target="_blank">Hoodi Etherscan</a><br />
+          2. Click the <strong>"Code"</strong> tab<br />
+          3. Click <strong>"More Options"</strong> → <strong>"Is this a proxy?"</strong><br />
+          4. Click <strong>"Verify"</strong> — Etherscan will auto-detect the ABI contract<br />
+          5. Confirm the linking
+        </p>
+        <p style="margin-top: 8px">
+          Once linked, the Mirror page will show all ABI methods in Read/Write Contract tabs, 
+          making interaction much easier through Etherscan UI.
+        </p>
+      </div>
     </section>
 
     <!-- Top-Up -->
@@ -868,10 +920,10 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
       <div class="callout callout-info">
         <div class="callout-title">💡 Quick Testing via Etherscan</div>
         <p>
-          If your program's Mirror contract is verified with ABI, you can also interact with it directly through
-          Etherscan. Go to the Mirror address on Hoodi Etherscan, open the <strong>Write Contract</strong> tab, connect
-          your wallet, and call <code>sendMessage</code> with your encoded payload. Great for quick tests without
-          writing code.
+          If your program's Mirror contract is verified with ABI (see "Link Mirror as Proxy" above), you can interact 
+          with it directly through Etherscan. Go to the Mirror address on Hoodi Etherscan, open the 
+          <strong>Write Contract</strong> tab, connect your wallet, and call <code>sendMessage</code> with your 
+          encoded payload. Great for quick tests without writing code.
         </p>
       </div>
 
@@ -1118,7 +1170,16 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
           <div class="flow-num">3</div>
           <div class="flow-content">
             <h4>Create program instance</h4>
-            <p><code>router.createProgram(CODE_ID)</code> → Get <code>PROGRAM_ID</code> (Mirror address)</p>
+            <p>
+              <strong>Option A (Standard):</strong><br />
+              <code>router.createProgram(CODE_ID)</code> → Get <code>PROGRAM_ID</code> (Mirror address)
+            </p>
+            <p style="margin-top: 8px">
+              <strong>Option B (With ABI via Foundry):</strong><br />
+              Generate Solidity: <code>cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl</code><br />
+              Deploy &amp; create: <code>npm run create:abi</code> (uses <code>forge script</code> + TypeScript)<br />
+              Link on Etherscan: More Options → "Is this a proxy?" → Verify
+            </p>
           </div>
         </div>
         <div class="flow-step">
@@ -1134,7 +1195,8 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
             <h4>Interact with your program</h4>
             <p>
               <strong>Classic:</strong> <code>mirror.sendMessage()</code> — Full L1 finality<br />
-              <strong>Injected:</strong> <code>api.createInjectedTransaction()</code> — Instant pre-confirmation
+              <strong>Injected:</strong> <code>api.createInjectedTransaction()</code> — Instant pre-confirmation<br />
+              <strong>With ABI:</strong> Use Etherscan UI or standard Ethereum tooling
             </p>
           </div>
         </div>
@@ -1151,7 +1213,8 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
       <ul class="summary-list">
         <li>Build a Gear program with Sails</li>
         <li>Upload and validate WASM on Ethereum</li>
-        <li>Create a program instance (Mirror contract)</li>
+        <li>Create a program instance (Mirror contract) — standard or with Solidity ABI via Foundry</li>
+        <li>Link Mirror as proxy on Etherscan (for ABI option)</li>
         <li>Fund the program with wVARA (reverse-gas model)</li>
         <li>Send messages via classic Ethereum transactions</li>
         <li>Send injected transactions for instant pre-confirmations</li>

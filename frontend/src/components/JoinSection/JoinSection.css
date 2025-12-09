@@ -1,0 +1,126 @@
+.join-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0;
+}
+
+.connect-button,
+.join-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.connect-button:hover:not(:disabled),
+.join-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.connect-button:disabled,
+.join-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-icon {
+  font-size: 24px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.connected-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.joined-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #48bb78;
+  padding: 16px 32px;
+  background: rgba(72, 187, 120, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.check-icon {
+  font-size: 32px;
+}
+
+.transaction-status {
+  font-size: 12px;
+  opacity: 0.85;
+  padding: 8px 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.transaction-status.preconfirmed {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.transaction-status.finalized {
+  color: #48bb78;
+  background: rgba(72, 187, 120, 0.1);
+}
+
+.error-message-main {
+  color: #ff6b6b;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px 24px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .connect-button,
+  .join-button {
+    padding: 12px 32px;
+    font-size: 16px;
+  }
+
+  .joined-message {
+    font-size: 18px;
+    padding: 12px 24px;
+  }
+}
+
+
+
+
+

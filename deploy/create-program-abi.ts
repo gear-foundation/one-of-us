@@ -2,6 +2,9 @@ import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
 import { EthereumClient } from '@vara-eth/api';
+import { execSync } from 'child_process';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -10,9 +13,7 @@ import {
   HOODI_CHAIN_ID,
 } from './config.ts';
 
-// Import generated Solidity ABI contract
-// Note: You need to compile OneOfUs.sol first to get ABI and bytecode
-import { oneOfUsAbi, oneOfUsBytecode } from './OneOfUsAbi.ts';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const hoodi = defineChain({
   id: HOODI_CHAIN_ID,
@@ -26,6 +27,34 @@ const hoodi = defineChain({
   testnet: true,
 });
 
+function deployWithForge(): string {
+  console.log('\n=== Step 1: Deploy & Verify with Foundry ===');
+
+  const etherscanKey = process.env.ETHERSCAN_API_KEY;
+  const verifyFlag = etherscanKey
+    ? `--verify --etherscan-api-key ${etherscanKey}`
+    : '';
+
+  const output = execSync(
+    `forge script deploy/DeployOneOfUsAbi.s.sol:DeployOneOfUsAbi \
+      --rpc-url ${ETH_RPC} \
+      --broadcast ${verifyFlag} -vvv`,
+    {
+      cwd: join(__dirname, '..'),
+      encoding: 'utf-8',
+      env: { ...process.env, PRIVATE_KEY: PRIVATE_KEY },
+    }
+  );
+
+  console.log(output);
+
+  const match = output.match(/deployed at:\s*(0x[a-fA-F0-9]{40})/i);
+  if (!match) throw new Error('Could not parse contract address');
+
+  console.log('✅ Deployed:', match[1]);
+  return match[1];
+}
+
 async function main() {
   const account = privateKeyToAccount(PRIVATE_KEY);
   console.log('Account:', account.address);
@@ -34,84 +63,64 @@ async function main() {
     chain: hoodi,
     transport: http(ETH_RPC),
   });
-
   const walletClient = createWalletClient({
     account,
     chain: hoodi,
     transport: http(ETH_RPC),
   });
 
-  const balance = await publicClient.getBalance({ address: account.address });
-  console.log('Balance:', (Number(balance) / 1e18).toFixed(4), 'ETH');
+  console.log(
+    'Balance:',
+    (
+      Number(await publicClient.getBalance({ address: account.address })) / 1e18
+    ).toFixed(4),
+    'ETH'
+  );
 
   if (!CODE_ID) {
-    console.error('Error: CODE_ID not set in .env');
-    console.log('Run "npm run upload" first to upload code');
+    console.error('CODE_ID not set. Run "npm run upload" first.');
     process.exit(1);
   }
 
+  const abiAddress = deployWithForge();
+
+  console.log('\n=== Step 2: Create Program ===');
+  console.log('Code ID:', CODE_ID);
+  console.log('ABI Address:', abiAddress);
+
+  console.log('Initializing client...');
   const ethereumClient = new EthereumClient(
     publicClient,
     walletClient,
     ROUTER_ADDRESS
   );
   await ethereumClient.isInitialized;
-  const router = ethereumClient.router;
 
-  // Step 1: Deploy Solidity ABI contract
-  console.log('\n=== Step 1: Deploy Solidity ABI Contract ===');
-  console.log('Deploying OneOfUsAbi contract...');
-
-  const deployHash = await walletClient.deployContract({
-    abi: oneOfUsAbi,
-    bytecode: oneOfUsBytecode,
-    account,
-  });
-
-  console.log('Deploy TX:', deployHash);
-
-  const deployReceipt = await publicClient.waitForTransactionReceipt({
-    hash: deployHash,
-  });
-
-  const abiAddress = deployReceipt.contractAddress;
-  console.log('ABI Contract deployed at:', abiAddress);
-
-  if (!abiAddress) {
-    console.error('Error: Failed to deploy ABI contract');
-    process.exit(1);
-  }
-
-  // Step 2: Create program with ABI interface
-  console.log('\n=== Step 2: Create Program with ABI Interface ===');
-  console.log('Code ID:', CODE_ID);
-  console.log('ABI Address:', abiAddress);
-
-  const tx = await router.createProgramWithAbiInterface(CODE_ID, abiAddress);
+  console.log('Sending transaction...');
+  const tx = await ethereumClient.router.createProgramWithAbiInterface(
+    CODE_ID,
+    abiAddress as `0x${string}`
+  );
   const receipt = await tx.sendAndWaitForReceipt();
 
-  console.log('\n=== Transaction Receipt ===');
-  console.log('Hash:', receipt.transactionHash);
-  console.log('Block:', receipt.blockNumber);
+  console.log('TX:', receipt.transactionHash);
   console.log(
     'Status:',
     receipt.status === 'success' ? '✅ Success' : '❌ Failed'
   );
-  console.log('Gas Used:', receipt.gasUsed.toString());
+
+  if (receipt.status !== 'success') {
+    console.error('❌ Failed:', receipt.transactionHash);
+    process.exit(1);
+  }
 
   const programId = await tx.getProgramId();
-  console.log('\n=== Program Created with ABI ===');
-  console.log('Program ID:', programId);
-  console.log('ABI Contract:', abiAddress);
-
-  console.log('\n✓ Done! Add to .env:');
-  console.log('  PROGRAM_ID=' + programId);
-  console.log('  ABI_ADDRESS=' + abiAddress);
-  console.log('\nNext: npm run fund → npm run init');
-  console.log('\nYou can now interact with the program using Solidity ABI!');
+  console.log('\n✅ Done!');
+  console.log('PROGRAM_ID=' + programId);
+  console.log('ABI_ADDRESS=' + abiAddress);
 }
 
-main().catch((error) => {
-  console.error('Error:', error.message);
+main().catch((e) => {
+  console.error(e.message);
   process.exit(1);
 });

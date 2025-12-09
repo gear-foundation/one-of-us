@@ -5,7 +5,6 @@ ethexe
 Cargo.lock
 
 # Frontend
-frontend/
 frontend/node_modules/
 frontend/build/
 frontend/dist/
@@ -24,3 +23,8 @@ deploy/.env.local
 *private*
 .env
 .env.local
+
+# Foundry
+out/
+cache/
+lib/

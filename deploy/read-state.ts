@@ -63,10 +63,13 @@ async function main() {
   await ethereumClient.isInitialized;
   const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
 
-  const api = new VaraEthApi(
-    new WsVaraEthProvider(VARA_ETH_WS as `ws://${string}` | `wss://${string}`),
-    ethereumClient
+  const provider = new WsVaraEthProvider(
+    VARA_ETH_WS as `ws://${string}` | `wss://${string}`
   );
+  const api = new VaraEthApi(provider, ethereumClient);
+
+  // Connect WebSocket provider
+  await provider.connect();
 
   // Get the current state hash from Ethereum (Mirror contract)
   const stateHash = await mirror.stateHash();

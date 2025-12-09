@@ -1,0 +1,48 @@
+.slogan-container {
+  position: relative;
+  width: 800px;
+  max-width: 90vw;
+  height: 80px;
+  margin: 0 auto 30px;
+  perspective: 1000px;
+}
+
+.slogan {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(50px) scale(0.8);
+  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.8), 0 0 20px rgba(102, 126, 234, 0.6), 0 0 30px rgba(118, 75, 162, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  margin: 0;
+}
+
+.slogan.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.slogan.passed {
+  opacity: 0;
+  transform: translateY(-50px) scale(0.8);
+}
+
+@media (max-width: 768px) {
+  .slogan {
+    font-size: 1.8rem;
+  }
+
+  .slogan-container {
+    height: 60px;
+    margin-bottom: 20px;
+  }
+}

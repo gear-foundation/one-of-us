@@ -3,7 +3,7 @@
 use core::cell::{Ref, RefMut};
 use sails_rs::{cell::RefCell, collections::BTreeSet, gstd::msg, prelude::*};
 
-const PROGRAM_VERSION: u32 = 4;
+const PROGRAM_VERSION: u32 = 6;
 
 type EthAddress = [u16; 16];
 

@@ -37,7 +37,6 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  // v0.0.2: EthereumClient now takes routerAddress
   const ethereumClient = new EthereumClient(
     publicClient,
     walletClient,
@@ -48,10 +47,13 @@ async function main() {
   console.log('Account:', account.address);
   console.log('Program:', PROGRAM_ID);
 
-  const api = new VaraEthApi(
-    new WsVaraEthProvider(VARA_ETH_WS as `ws://${string}` | `wss://${string}`),
-    ethereumClient
+  const provider = new WsVaraEthProvider(
+    VARA_ETH_WS as `ws://${string}` | `wss://${string}`
   );
+  const api = new VaraEthApi(provider, ethereumClient);
+
+  // Connect WebSocket provider
+  await provider.connect();
 
   const parser = await SailsIdlParser.new();
   const sails = new Sails(parser);
