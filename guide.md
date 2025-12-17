@@ -130,7 +130,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { EthereumClient } from '@vara-eth/api';
 
 const hoodi = defineChain({
-  id: 559920,
+  id: 560048,
   name: 'Hoodi Testnet',
   network: 'hoodi',
   nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },

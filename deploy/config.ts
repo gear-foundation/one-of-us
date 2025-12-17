@@ -20,5 +20,5 @@ export const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 export const IDL_PATH = '../target/wasm32-gear/release/one_of_us.idl';
 export const WASM_PATH = '../target/wasm32-gear/release/one_of_us.opt.wasm';
 
-export const HOODI_CHAIN_ID = 559920;
+export const HOODI_CHAIN_ID = 560048;
 export const WVARA_TOP_UP_AMOUNT = BigInt(10 * 1e12);
