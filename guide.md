@@ -287,6 +287,7 @@ Before your program can execute anything, it needs fuel. Vara.eth doesn't charge
 Practically, topping up is a two-step Ethereum flow. First you approve your program (or its Mirror) to spend wVARA from your wallet, then you call the Mirror's top-up method to move wVARA into the program's executable balance. The Mirror records the top-up on Ethereum and signals executors that the program is funded.
 
 🔗 [Get your wVARA](https://idea.gear-tech.io/balance)
+
 Run the script to top up the program balance:
 
 ```bash
@@ -385,6 +386,7 @@ Instead of waiting for an L1 transaction to be mined, you submit your message di
 > ✅ **Zero Gas for Users**
 >
 > Your users don't even have to pay for this interaction. Execution is funded from the program's internal wVARA balance — not from the user's pocket. The user just signs in MetaMask, gets an instant pre-confirmation, and moves on.
+
 Run the script to send the injected transaction:
 ```bash
 npm run injected
@@ -433,6 +435,7 @@ The canonical program state is anchored on Ethereum as a **state hash** in the M
 > **Injected transaction:** There are two moments to consider. Calling `send()` returns `Accept` or `Reject` immediately — this is a guarantee that the validator has accepted the transaction and will execute it, but the state hasn't changed yet. If you use `sendAndWaitForPromise()`, you wait for the actual execution result (reply). Once you receive that reply, the state is updated and you can read it immediately.
 >
 > **Optimistic UI:** If your app knows the computational result in advance (e.g., incrementing a counter), you can update the UI right after receiving `Accept` — you have a guarantee the transaction will be included.
+
 Run the script to read state:
 ```bash
 npm run state
