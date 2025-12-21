@@ -20,7 +20,7 @@
   "type": "module",
   "dependencies": {
     "@types/node": "^24.10.1",
-    "@vara-eth/api": "^0.0.4",
+    "@vara-eth/api": "^0.0.5",
     "dotenv": "^17.2.3",
     "kzg-wasm": "^1.0.0",
     "sails-js": "^0.5.1",

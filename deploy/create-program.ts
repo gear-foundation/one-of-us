@@ -23,6 +23,7 @@ const hoodi = defineChain({
 });
 
 async function main() {
+  console.log(ETH_RPC)
   const account = privateKeyToAccount(PRIVATE_KEY);
   console.log('Account:', account.address);
 

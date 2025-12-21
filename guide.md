@@ -117,8 +117,17 @@ Code ID: 0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80154003b74dd8829d
 ```
 
 ## Program Creation
+Install the dependencies to be able to run the scripts:
+```bash
+npm install
+```
 
 Uploading gives you a validated `codeId`, but there's still no running program yet. Program creation is the moment your WASM turns into an actual instance anchored on L1.
+
+To create the program, run:
+```bash
+npm run create
+```
 
 Once you create it, Ethereum deploys a dedicated **Mirror contract** for your program. That Mirror becomes your on-chain gateway: the mailbox where you send messages, read the latest state hash, top up execution balance, and generally interact with the program.
 
@@ -211,8 +220,12 @@ contract DeployOneOfUsAbi is Script {
 
 #### Deploy and Create Program
 
-The TypeScript script handles both deployment via Foundry and program creation:
+The TypeScript script handles both deployment via Foundry and program creation.
 
+Run the script to create the program with the ABI.
+```bash
+npm run create:abi
+```
 🔗 [View full script: create-program-abi.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program-abi.ts)
 
 ```typescript
@@ -256,6 +269,7 @@ async function main() {
 
 After deployment, you need to link the Mirror contract (your `PROGRAM_ID`) to the ABI contract on Etherscan. This enables the familiar Read/Write Contract interface on your Mirror.
 
+
 > 🔗 **How to link**
 >
 > 1. Go to your `PROGRAM_ID` (Mirror address) on [Hoodi Etherscan](https://hoodi.etherscan.io)
@@ -274,7 +288,14 @@ Practically, topping up is a two-step Ethereum flow. First you approve your prog
 
 🔗 [Get your wVARA](https://idea.gear-tech.io/balance)
 
+Run the script to top up the program balance:
+
+```bash
+npm run fund
+```
+
 🔗 [View full script: fund-program.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/fund-program.ts)
+
 
 ```typescript
 import { EthereumClient, getMirrorClient } from '@vara-eth/api';
@@ -314,6 +335,15 @@ This is the normal Ethereum flow. You still use Sails ABI/IDL so you never touch
 >
 > If your program's Mirror contract is verified with ABI (see "Link Mirror as Proxy" above), you can interact with it directly through Etherscan. Go to the Mirror address on Hoodi Etherscan, open the **Write Contract** tab, connect your wallet, and call `sendMessage` with your encoded payload. Great for quick tests without writing code.
 
+Run the script to init the program:
+
+```bash
+npm run init
+```
+and then to send the message to the program
+```bash
+npm run classic
+```
 🔗 [View full script: classic-tx.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/classic-tx.ts)
 
 ```typescript
@@ -356,6 +386,11 @@ Instead of waiting for an L1 transaction to be mined, you submit your message di
 > ✅ **Zero Gas for Users**
 >
 > Your users don't even have to pay for this interaction. Execution is funded from the program's internal wVARA balance — not from the user's pocket. The user just signs in MetaMask, gets an instant pre-confirmation, and moves on.
+
+Run the script to send the injected transaction:
+```bash
+npm run injected
+```
 
 🔗 [View full script: test-injected.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/test-injected.ts)
 
@@ -400,6 +435,11 @@ The canonical program state is anchored on Ethereum as a **state hash** in the M
 > **Injected transaction:** There are two moments to consider. Calling `send()` returns `Accept` or `Reject` immediately — this is a guarantee that the validator has accepted the transaction and will execute it, but the state hasn't changed yet. If you use `sendAndWaitForPromise()`, you wait for the actual execution result (reply). Once you receive that reply, the state is updated and you can read it immediately.
 >
 > **Optimistic UI:** If your app knows the computational result in advance (e.g., incrementing a counter), you can update the UI right after receiving `Accept` — you have a guarantee the transaction will be included.
+
+Run the script to read state:
+```bash
+npm run state
+```
 
 🔗 [View full script: read-state.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/read-state.ts)
 
