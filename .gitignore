@@ -10,12 +10,18 @@ frontend/build/
 frontend/dist/
 frontend/.env
 frontend/.env.local
-frontend/
+!frontend/.env.example
 
 # Deploy scripts
 deploy/node_modules/
 deploy/.env
 deploy/.env.local
+
+# Backend
+backend/node_modules/
+backend/data/
+backend/.env
+!backend/.env.example
 
 # Private keys and secrets
 *.key
@@ -24,6 +30,7 @@ deploy/.env.local
 *private*
 .env
 .env.local
+!.env.example
 
 # Foundry
 out/
