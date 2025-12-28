@@ -43,7 +43,7 @@ interface IOneOfUsCallbacks {
 
     function replyOn_oneOfUsIsOneOfUs(bytes32 messageId, bool reply) external;
 
-    function replyOn_oneOfUsList(bytes32 messageId, bytes32[] reply) external;
+    function replyOn_oneOfUsList(bytes32 messageId, bytes32[] calldata reply) external;
 
     function replyOn_oneOfUsVersion(bytes32 messageId, uint32 reply) external;
 
@@ -78,7 +78,7 @@ contract OneOfUsCaller is IOneOfUsCallbacks {
         // TODO: implement this
     }
 
-    function replyOn_oneOfUsList(bytes32 messageId, bytes32[] reply) external onlyGearExeProgram {
+    function replyOn_oneOfUsList(bytes32 messageId, bytes32[] calldata reply) external onlyGearExeProgram {
         // TODO: implement this
     }
 
