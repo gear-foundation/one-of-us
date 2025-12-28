@@ -1,0 +1,12 @@
+constructor {
+  Init : ();
+};
+
+service OneOfUs {
+  JoinUs : () -> bool;
+  query Count : () -> u32;
+  query IsOneOfUs : (addr: actor_id) -> bool;
+  query List : (page: u32, page_size: u32) -> vec actor_id;
+  query Version : () -> u32;
+};
+

@@ -4,7 +4,7 @@
 
 ## Introduction
 
-In this guide, we'll dive into the process of deploying and running actual WASM programs on Ethereum through Vara.eth. The idea is straightforward: you write your program in Rust, compile it to WASM, and then execute it in a high-performance parallel environment — while keeping Ethereum as the settlement and security layer. No Layer 2, no new chains, no liquidity fragmentation, and no extra trust assumptions. Just Ethereum's security model and liquidity, with a compute layer that finally lets your app breathe.
+In this guide, we'll dive into the process of deploying and running actual WASM programs on Ethereum through Vara.eth. The idea is straightforward: take a WASM program and execute it in a high-performance parallel environment — while keeping Ethereum as the settlement and security layer. No Layer 2, no new chains, no liquidity fragmentation, and no extra trust assumptions. Just Ethereum's security model and liquidity, with a compute layer that finally lets your app breathe.
 
 > 💡 **Pre-confirmations**
 >
@@ -24,7 +24,7 @@ By the end, you'll have a running Vara.eth program anchored to Ethereum, a clear
 | [💻 Example dApp](https://github.com/gear-foundation/one-of-us) | One of Us — complete working example |
 | [🔧 Sails Documentation](https://wiki.vara.network/docs/build/sails) | Sails framework documentation |
 
-## Building the Program
+## The Program
 
 Our running example is **One of Us** — a small "fancy counter" that records Ethereum addresses of everyone who joins, prevents duplicates, and lets anyone query how many builders are in. It touches all the core patterns: persistent state, exported service methods, message-driven updates, and clean interface boundaries.
 
@@ -32,48 +32,29 @@ The program is written in Rust using the **Sails framework**. A useful thing to 
 
 🔗 [gear-foundation/one-of-us](https://github.com/gear-foundation/one-of-us)
 
-### Prerequisites
+### Download Pre-built Files
 
-Make sure your environment matches the standard Gear/Vara prerequisites: recent Rust toolchain, WASM build target, and basic system packages.
+Download the ready-to-use program files from the `sources/` folder:
 
-See: [Getting started in 5 minutes](https://wiki.vara.network/docs/getting-started-in-5-minutes)
+| File | Description |
+| --- | --- |
+| [`one_of_us.opt.wasm`](https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.opt.wasm) | Optimized WASM program ready for upload |
+| [`one_of_us.idl`](https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.idl) | IDL interface for sails-js interaction |
+| [`OneOfUs.sol`](https://github.com/gear-foundation/one-of-us/raw/master/sources/OneOfUs.sol) | Solidity ABI interface (optional) |
 
-### Build
-
-```bash
-cargo build --release
-```
-
-After the build completes, your optimized WASM artifact will be in:
-
-```
-target/wasm32-gear/release/*.opt.wasm
-```
-
-> ✅ **Done!** You now have a Gear/Sails program compiled for Vara.eth. Next, we'll upload it to Ethereum for validation.
-
-### Generate Solidity Interface (Optional)
-
-If you want to interact with your Vara.eth program using Ethereum's native ABI encoding — for example, calling it from other Solidity contracts or using standard Ethereum tooling — you can generate a Solidity interface from your program's IDL.
-
-```bash
-cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl
-```
-
-This generates an `OneOfUs.sol` file containing:
-
-- **IOneOfUs** — interface with all your program's methods
-- **OneOfUsAbi** — ABI contract for deployment
-- **IOneOfUsCallbacks** — callback interface for receiving replies
-- **OneOfUsCaller** — example contract showing how to call your program
-
-> 💡 **When do you need this?**
+> 💡 **Want to build from source?**
 >
-> You only need the Solidity interface if you want to call your Vara.eth program from other smart contracts or prefer using Ethereum ABI tooling. For direct interaction via TypeScript/JavaScript, you can use the sails-js library with IDL instead.
+> If you prefer to build the program yourself, check out the [full source code](https://github.com/gear-foundation/one-of-us). Make sure your environment matches the standard Gear/Vara prerequisites — see [Getting started in 5 minutes](https://wiki.vara.network/docs/getting-started-in-5-minutes).
+>
+> ```bash
+> cargo build --release
+> ```
+>
+> Your optimized WASM will be in `target/wasm32-gear/release/one_of_us.opt.wasm`
 
 ## Uploading Program Code
 
-Now that you have an optimized WASM build, the next step is to get it onto Ethereum. First, it needs to be uploaded and validated through the vara-eth CLI. Think of this as the Ethereum-side "registration" of your WASM code.
+Now that you have the WASM file, the next step is to get it onto Ethereum. It needs to be uploaded and validated through the vara-eth CLI. Think of this as the Ethereum-side "registration" of your WASM code.
 
 ### Getting the CLI
 
@@ -102,7 +83,7 @@ cargo build -p ethexe-cli -r
   --ethereum-rpc "wss://hoodi-reth-rpc.gear-tech.io/ws" \
   --ethereum-router "0x579D6098197517140e5aec47c78d6f7181916dd6" \
   --sender "$SENDER_ADDRESS" \
-  upload target/wasm32-gear/release/one_of_us.opt.wasm -w
+  upload sources/one_of_us.opt.wasm -w
 ```
 
 > ⚠️ **Get Test ETH**
@@ -117,7 +98,9 @@ Code ID: 0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80154003b74dd8829d
 ```
 
 ## Program Creation
+
 Install the dependencies to be able to run the scripts:
+
 ```bash
 npm install
 ```
@@ -125,6 +108,7 @@ npm install
 Uploading gives you a validated `codeId`, but there's still no running program yet. Program creation is the moment your WASM turns into an actual instance anchored on L1.
 
 To create the program, run:
+
 ```bash
 npm run create
 ```
@@ -172,6 +156,8 @@ async function main() {
 
 If you want to interact with your Vara.eth program using a familiar Solidity ABI (for example, from other smart contracts or Ethereum tooling), you can create the program with an ABI interface. We use **Foundry** for deploying and verifying the ABI contract — it handles compilation, deployment, and Etherscan verification in one step.
 
+The pre-built `OneOfUs.sol` is already included in the [`sources/`](https://github.com/gear-foundation/one-of-us/tree/master/sources) folder.
+
 #### Install Foundry
 
 ```bash
@@ -181,12 +167,6 @@ foundryup
 
 # Install dependencies (from project root)
 forge install
-```
-
-#### Generate Solidity Interface
-
-```bash
-cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl
 ```
 
 #### Foundry Deploy Script
@@ -223,9 +203,11 @@ contract DeployOneOfUsAbi is Script {
 The TypeScript script handles both deployment via Foundry and program creation.
 
 Run the script to create the program with the ABI.
+
 ```bash
 npm run create:abi
 ```
+
 🔗 [View full script: create-program-abi.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program-abi.ts)
 
 ```typescript
@@ -269,7 +251,6 @@ async function main() {
 
 After deployment, you need to link the Mirror contract (your `PROGRAM_ID`) to the ABI contract on Etherscan. This enables the familiar Read/Write Contract interface on your Mirror.
 
-
 > 🔗 **How to link**
 >
 > 1. Go to your `PROGRAM_ID` (Mirror address) on [Hoodi Etherscan](https://hoodi.etherscan.io)
@@ -295,7 +276,6 @@ npm run fund
 ```
 
 🔗 [View full script: fund-program.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/fund-program.ts)
-
 
 ```typescript
 import { EthereumClient, getMirrorClient } from '@vara-eth/api';
@@ -340,10 +320,13 @@ Run the script to init the program:
 ```bash
 npm run init
 ```
+
 and then to send the message to the program
+
 ```bash
 npm run classic
 ```
+
 🔗 [View full script: classic-tx.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/classic-tx.ts)
 
 ```typescript
@@ -388,6 +371,7 @@ Instead of waiting for an L1 transaction to be mined, you submit your message di
 > Your users don't even have to pay for this interaction. Execution is funded from the program's internal wVARA balance — not from the user's pocket. The user just signs in MetaMask, gets an instant pre-confirmation, and moves on.
 
 Run the script to send the injected transaction:
+
 ```bash
 npm run injected
 ```
@@ -437,6 +421,7 @@ The canonical program state is anchored on Ethereum as a **state hash** in the M
 > **Optimistic UI:** If your app knows the computational result in advance (e.g., incrementing a counter), you can update the UI right after receiving `Accept` — you have a guarantee the transaction will be included.
 
 Run the script to read state:
+
 ```bash
 npm run state
 ```
@@ -483,21 +468,21 @@ async function main() {
 
 ## Complete Flow
 
-| Step   | Action                                | Command / Result                                             |
-| ------ | ------------------------------------- | ------------------------------------------------------------ |
-| **1**  | Build your Rust program with Sails    | `cargo build --release`                                      |
-| **2**  | Upload WASM via CLI                   | `ethexe upload program.opt.wasm` → Get `CODE_ID`             |
-| **3a** | Create program (Standard)             | `router.createProgram(CODE_ID)` → Get `PROGRAM_ID`           |
-| **3b** | Create program (With ABI via Foundry) | `npm run create:abi` → Get `PROGRAM_ID` + `ABI_ADDRESS`      |
-| **3c** | Link on Etherscan                     | Code → More Options → "Is this a proxy?" → Verify            |
-| **4**  | Fund the program                      | `wvara.approve()` + `mirror.executableBalanceTopUp()`        |
-| **5a** | Interact (Classic)                    | `mirror.sendMessage()` — Full L1 finality                    |
-| **5b** | Interact (Injected)                   | `api.createInjectedTransaction()` — Instant pre-confirmation |
-| **6**  | Read state                            | `api.call.program.calculateReplyForHandle()`                 |
+| Step | Action | Command / Result |
+| --- | --- | --- |
+| **1** | Get program files | Download from [`sources/`](https://github.com/gear-foundation/one-of-us/tree/master/sources) |
+| **2** | Upload WASM via CLI | `ethexe upload one_of_us.opt.wasm` → Get `CODE_ID` |
+| **3a** | Create program (Standard) | `router.createProgram(CODE_ID)` → Get `PROGRAM_ID` |
+| **3b** | Create program (With ABI via Foundry) | `npm run create:abi` → Get `PROGRAM_ID` + `ABI_ADDRESS` |
+| **3c** | Link on Etherscan | Code → More Options → "Is this a proxy?" → Verify |
+| **4** | Fund the program | `wvara.approve()` + `mirror.executableBalanceTopUp()` |
+| **5a** | Interact (Classic) | `mirror.sendMessage()` — Full L1 finality |
+| **5b** | Interact (Injected) | `api.createInjectedTransaction()` — Instant pre-confirmation |
+| **6** | Read state | `api.call.program.calculateReplyForHandle()` |
 
 ### Summary
 
-- ✅ Build a Gear program with Sails
+- ✅ Download pre-built WASM and IDL files
 - ✅ Upload and validate WASM on Ethereum
 - ✅ Create a program instance (Mirror contract) — standard or with Solidity ABI via Foundry
 - ✅ Link Mirror as proxy on Etherscan (for ABI option)

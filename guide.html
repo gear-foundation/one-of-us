@@ -452,7 +452,7 @@
       <h2>Introduction</h2>
       <p>
         In this guide, we'll dive into the process of deploying and running actual WASM programs on Ethereum through
-        Vara.eth. The idea is straightforward: you write your program in Rust, compile it to WASM, and then execute it
+        Vara.eth. The idea is straightforward: take a WASM program and execute it
         in a high-performance parallel environment — while keeping Ethereum as the settlement and security layer. No
         Layer 2, no new chains, no liquidity fragmentation, and no extra trust assumptions. Just Ethereum's security
         model and liquidity, with a compute layer that finally lets your app breathe.
@@ -506,9 +506,9 @@
       </div>
     </section>
 
-    <!-- Building -->
-    <section id="building">
-      <h2>Building the Program</h2>
+    <!-- The Program -->
+    <section id="program">
+      <h2>The Program</h2>
 
       <p>
         Our running example is <strong>One of Us</strong> — a small "fancy counter" that records Ethereum addresses of
@@ -530,57 +530,42 @@
         gear-foundation/one-of-us
       </a>
 
-      <h3>Prerequisites</h3>
-      <p>
-        Make sure your environment matches the standard Gear/Vara prerequisites: recent Rust toolchain, WASM build
-        target, and basic system packages.
-      </p>
-      <p>
-        See:
-        <a href="https://wiki.vara.network/docs/getting-started-in-5-minutes" target="_blank"
-          >Getting started in 5 minutes</a
-        >
-      </p>
+      <h3>Download Pre-built Files</h3>
+      <p>Download the ready-to-use program files from the <code>sources/</code> folder:</p>
 
-      <h3>Build</h3>
-      <pre data-lang="bash"><code>cargo build --release</code></pre>
-
-      <p>After the build completes, your optimized WASM artifact will be in:</p>
-      <pre data-lang="path"><code>target/wasm32-gear/release/*.opt.wasm</code></pre>
-
-      <div class="callout callout-success">
-        <div class="callout-title">✓ Done</div>
-        <p>
-          You now have a Gear/Sails program compiled for Vara.eth. Next, we'll upload it to Ethereum for validation.
-        </p>
-      </div>
-
-      <h3>Generate Solidity Interface (Optional)</h3>
-
-      <p>
-        If you want to interact with your Vara.eth program using Ethereum's native ABI encoding — for example, calling
-        it from other Solidity contracts or using standard Ethereum tooling — you can generate a Solidity interface from
-        your program's IDL.
-      </p>
-
-      <pre data-lang="bash"><code>cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl</code></pre>
-
-      <p>This generates an <code>OneOfUs.sol</code> file containing:</p>
-
-      <ul>
-        <li><strong>IOneOfUs</strong> — interface with all your program's methods</li>
-        <li><strong>OneOfUsAbi</strong> — ABI contract for deployment</li>
-        <li><strong>IOneOfUsCallbacks</strong> — callback interface for receiving replies</li>
-        <li><strong>OneOfUsCaller</strong> — example contract showing how to call your program</li>
-      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.opt.wasm" target="_blank"><code>one_of_us.opt.wasm</code></a></td>
+            <td>Optimized WASM program ready for upload</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.idl" target="_blank"><code>one_of_us.idl</code></a></td>
+            <td>IDL interface for sails-js interaction</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/OneOfUs.sol" target="_blank"><code>OneOfUs.sol</code></a></td>
+            <td>Solidity ABI interface (optional)</td>
+          </tr>
+        </tbody>
+      </table>
 
       <div class="callout callout-info">
-        <div class="callout-title">When do you need this?</div>
+        <div class="callout-title">Want to build from source?</div>
         <p>
-          You only need the Solidity interface if you want to call your Vara.eth program from other smart contracts or
-          prefer using Ethereum ABI tooling. For direct interaction via TypeScript/JavaScript, you can use the sails-js
-          library with IDL instead.
+          If you prefer to build the program yourself, check out the 
+          <a href="https://github.com/gear-foundation/one-of-us" target="_blank">full source code</a>. 
+          Make sure your environment matches the standard Gear/Vara prerequisites — see 
+          <a href="https://wiki.vara.network/docs/getting-started-in-5-minutes" target="_blank">Getting started in 5 minutes</a>.
         </p>
+        <pre data-lang="bash"><code>cargo build --release</code></pre>
+        <p>Your optimized WASM will be in <code>target/wasm32-gear/release/one_of_us.opt.wasm</code></p>
       </div>
     </section>
 
@@ -589,7 +574,7 @@
       <h2>Uploading Program Code</h2>
 
       <p>
-        Now that you have an optimized WASM build, the next step is to get it onto Ethereum. First, it needs to be
+        Now that you have the WASM file, the next step is to get it onto Ethereum. It needs to be
         uploaded and validated through the vara-eth CLI. Think of this as the Ethereum-side "registration" of your WASM
         code.
       </p>
@@ -614,7 +599,7 @@ cargo build -p ethexe-cli -r</code></pre>
   --ethereum-rpc <span class="string">"wss://hoodi-reth-rpc.gear-tech.io/ws"</span> \
   --ethereum-router <span class="string">"0x579D6098197517140e5aec47c78d6f7181916dd6"</span> \
   --sender <span class="string">"$SENDER_ADDRESS"</span> \
-  upload target/wasm32-gear/release/one_of_us.opt.wasm -w</code></pre>
+  upload sources/one_of_us.opt.wasm -w</code></pre>
 
       <div class="callout callout-warning">
         <div class="callout-title">⚠ Get Test ETH</div>
@@ -702,6 +687,11 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
         for deploying and verifying the ABI contract — it handles compilation, deployment, and Etherscan verification in one step.
       </p>
 
+      <p>
+        The pre-built <code>OneOfUs.sol</code> is already included in the 
+        <a href="https://github.com/gear-foundation/one-of-us/tree/master/sources" target="_blank"><code>sources/</code></a> folder.
+      </p>
+
       <h4>Install Foundry</h4>
       <pre data-lang="bash"><code><span class="comment"># Install Foundry</span>
 curl -L https://foundry.paradigm.xyz | bash
@@ -709,9 +699,6 @@ foundryup
 
 <span class="comment"># Install dependencies (from project root)</span>
 forge install</code></pre>
-
-      <h4>Generate Solidity Interface</h4>
-      <pre data-lang="bash"><code>cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl</code></pre>
 
       <h4>Foundry Deploy Script</h4>
       <p>Create a deploy script at <code>deploy/DeployOneOfUsAbi.s.sol</code>:</p>
@@ -1159,15 +1146,15 @@ forge install</code></pre>
         <div class="flow-step">
           <div class="flow-num">1</div>
           <div class="flow-content">
-            <h4>Build your Rust program with Sails</h4>
-            <p><code>cargo build --release</code></p>
+            <h4>Get program files</h4>
+            <p>Download from <a href="https://github.com/gear-foundation/one-of-us/tree/master/sources" target="_blank"><code>sources/</code></a></p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">2</div>
           <div class="flow-content">
             <h4>Upload WASM via CLI</h4>
-            <p><code>ethexe upload program.opt.wasm</code> → Get <code>CODE_ID</code></p>
+            <p><code>ethexe upload one_of_us.opt.wasm</code> → Get <code>CODE_ID</code></p>
           </div>
         </div>
         <div class="flow-step">
@@ -1180,7 +1167,7 @@ forge install</code></pre>
             </p>
             <p style="margin-top: 8px">
               <strong>Option B (With ABI via Foundry):</strong><br />
-              Generate Solidity: <code>cargo sails sol --idl-path ./target/wasm32-gear/release/one_of_us.idl</code><br />
+              Use pre-built <code>OneOfUs.sol</code> from <code>sources/</code><br />
               Deploy &amp; create: <code>npm run create:abi</code> (uses <code>forge script</code> + TypeScript)<br />
               Link on Etherscan: More Options → "Is this a proxy?" → Verify
             </p>
@@ -1215,7 +1202,7 @@ forge install</code></pre>
 
       <h3>Summary</h3>
       <ul class="summary-list">
-        <li>Build a Gear program with Sails</li>
+        <li>Download pre-built WASM and IDL files</li>
         <li>Upload and validate WASM on Ethereum</li>
         <li>Create a program instance (Mirror contract) — standard or with Solidity ABI via Foundry</li>
         <li>Link Mirror as proxy on Etherscan (for ABI option)</li>
