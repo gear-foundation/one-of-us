@@ -1,0 +1,278 @@
+.join-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.status-message {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.status-message.loading {
+  color: #ffd700;
+}
+
+.status-message.error {
+  color: #ff6b6b;
+}
+
+.network-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  color: #ffc107;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.switch-btn {
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  color: #ffc107;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.switch-btn:hover {
+  background: rgba(255, 193, 7, 0.3);
+}
+
+.connect-button,
+.join-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.connect-button:hover:not(:disabled),
+.join-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.connect-button:disabled,
+.join-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-icon {
+  font-size: 24px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.connected-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.gasless-badge {
+  font-size: 13px;
+  color: #48bb78;
+  padding: 8px 16px;
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.2);
+  border-radius: 20px;
+  margin-bottom: 4px;
+}
+
+.joined-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.joined-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #48bb78;
+  padding: 16px 32px;
+  background: rgba(72, 187, 120, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.check-icon {
+  font-size: 32px;
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.confirming-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #ffd700;
+  padding: 8px 16px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+.member-count-update {
+  font-size: 16px;
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.tx-link {
+  color: #667eea;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.tx-link:hover {
+  color: #8b9eff;
+  text-decoration: underline;
+}
+
+.transaction-status {
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  margin-top: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.transaction-status.signing {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.transaction-status.accepted {
+  color: #48bb78;
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.2);
+}
+
+.transaction-status.confirming {
+  color: #48bb78;
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.2);
+  animation: pulse 1.5s infinite;
+}
+
+.transaction-status.success {
+  color: #48bb78;
+  background: rgba(72, 187, 120, 0.15);
+  border: 1px solid rgba(72, 187, 120, 0.3);
+}
+
+.transaction-status.error {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.transaction-status.pending {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  animation: pulse 1.5s infinite;
+}
+
+.transaction-status.preconfirmed {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.transaction-status.finalized {
+  color: #48bb78;
+  background: rgba(72, 187, 120, 0.1);
+}
+
+.error-message-main {
+  color: #ff6b6b;
+  font-size: 14px;
+  text-align: center;
+  padding: 12px 24px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .connect-button,
+  .join-button {
+    padding: 12px 32px;
+    font-size: 16px;
+  }
+
+  .joined-message {
+    font-size: 18px;
+    padding: 12px 24px;
+  }
+}

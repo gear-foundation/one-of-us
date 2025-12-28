@@ -1,0 +1,47 @@
+.floating-ufo {
+  position: fixed;
+  right: 5%;
+  top: 30%;
+  z-index: 40;
+  animation: floatDiagonal 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.floating-ufo img {
+  width: 360px;
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+  animation: ufoGlow 3s ease-in-out infinite;
+}
+
+@keyframes floatDiagonal {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-20px, 20px) rotate(-3deg);
+  }
+}
+
+@keyframes ufoGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 35px rgba(102, 126, 234, 0.9));
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .floating-ufo {
+    right: 2%;
+    top: 20%;
+  }
+
+  .floating-ufo img {
+    width: 240px;
+  }
+}
