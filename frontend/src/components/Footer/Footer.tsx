@@ -19,8 +19,11 @@ export const Footer = () => {
           >
             Etherscan
           </a>
-          <a href="https://vara.network" target="_blank" rel="noopener noreferrer" className="footer-link">
-            Vara.network
+          <a href="https://start.vara.network/" target="_blank" rel="noopener noreferrer" className="footer-link">
+            Start with Vara.eth
+          </a>
+          <a href="https://airlyft.one/" target="_blank" rel="noopener noreferrer" className="footer-link">
+            AirLyft Campaign
           </a>
         </div>
       </div>
