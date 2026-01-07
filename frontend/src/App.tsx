@@ -91,9 +91,11 @@ function App() {
         <div className="title-container">
           <h2 className="subtitle">Join the movement</h2>
           <h1 className="main-title">
-            <span className="one">ONE</span>
-            <span className="of">OF</span>
-            <span className="us">US</span>
+            <a href="/" className="title-link">
+              <span className="one">ONE</span>
+              <span className="of">OF</span>
+              <span className="us">US</span>
+            </a>
           </h1>
           <p className="description">
             A simple Ethereum-native application demonstrating fast UX through instant execution on{' '}

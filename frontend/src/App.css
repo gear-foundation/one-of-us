@@ -58,6 +58,18 @@
   position: relative;
 }
 
+.title-link {
+  display: flex;
+  gap: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.title-link:hover {
+  transform: scale(1.02);
+}
+
 .description {
   max-width: 600px;
   margin: 0 auto 30px;
