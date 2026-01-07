@@ -158,9 +158,9 @@ export const useJoinProgram = (
       // Optimistically increment counter
       onOptimisticJoin?.();
 
-      // Register in backend as pending (no tx_hash yet)
+      // Register in backend as pending (no tx_hash yet) - MUST await!
       if (address) {
-        registerMember(address, '');
+        await registerMember(address, '');
       }
 
       // Start watching for finalization
