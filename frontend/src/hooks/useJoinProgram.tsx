@@ -12,6 +12,42 @@ const STATE_CHANGED_EVENT = {
   inputs: [{ name: 'stateHash', type: 'bytes32', indexed: false }],
 } as const;
 
+// localStorage key for pending join state
+const PENDING_JOIN_KEY = 'one-of-us-pending-join';
+
+interface PendingJoin {
+  address: string;
+  timestamp: number;
+}
+
+// Save pending join to localStorage
+function savePendingJoin(address: string) {
+  const pending: PendingJoin = { address: address.toLowerCase(), timestamp: Date.now() };
+  localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify(pending));
+}
+
+// Get pending join from localStorage (valid for 10 minutes)
+function getPendingJoin(): PendingJoin | null {
+  try {
+    const data = localStorage.getItem(PENDING_JOIN_KEY);
+    if (!data) return null;
+    const pending: PendingJoin = JSON.parse(data);
+    // Expire after 10 minutes
+    if (Date.now() - pending.timestamp > 10 * 60 * 1000) {
+      localStorage.removeItem(PENDING_JOIN_KEY);
+      return null;
+    }
+    return pending;
+  } catch {
+    return null;
+  }
+}
+
+// Clear pending join from localStorage
+function clearPendingJoin() {
+  localStorage.removeItem(PENDING_JOIN_KEY);
+}
+
 export type TxStatus = 'idle' | 'signing' | 'confirming' | 'success' | 'error';
 
 export const useJoinProgram = (
@@ -48,6 +84,7 @@ export const useJoinProgram = (
           setFinalized(true);
           setTxStatus('success');
           setLoading(false);
+          clearPendingJoin(); // Clear localStorage on finalization
           unwatchRef.current?.();
           unwatchRef.current = null;
           updateMemberTxHash(userAddress, hash);
@@ -63,6 +100,7 @@ export const useJoinProgram = (
         setFinalized(true);
         setTxStatus('success');
         setLoading(false);
+        clearPendingJoin();
       }
     }, 300000);
   }, [publicClient, address]);
@@ -72,7 +110,13 @@ export const useJoinProgram = (
 
     setCheckingMembership(true);
     try {
+      // First check localStorage for pending join (instant, reliable)
+      const pendingJoin = getPendingJoin();
+      const hasPendingLocal = pendingJoin && pendingJoin.address === address.toLowerCase();
+
+      // Then check backend
       const result = await checkMember(address);
+      
       if (result.isMember) {
         setIsJoined(true);
         
@@ -81,15 +125,32 @@ export const useJoinProgram = (
           setTxHash(result.member.tx_hash);
           setFinalized(true);
           setTxStatus('success');
+          clearPendingJoin(); // Clear localStorage since finalized
         } else {
           // Pending - registered but no tx_hash yet
           setFinalized(false);
           setTxStatus('confirming');
           setLoading(true);
         }
+      } else if (hasPendingLocal) {
+        // Backend doesn't know yet, but we have localStorage pending state
+        // This happens if backend call failed or was slow during join
+        setIsJoined(true);
+        setFinalized(false);
+        setTxStatus('confirming');
+        setLoading(true);
+        // Try to register again in backend (in case it failed before)
+        registerMember(address, '');
       }
     } catch {
-      // ignore
+      // Backend failed - check localStorage as fallback
+      const pendingJoin = getPendingJoin();
+      if (pendingJoin && pendingJoin.address === address.toLowerCase()) {
+        setIsJoined(true);
+        setFinalized(false);
+        setTxStatus('confirming');
+        setLoading(true);
+      }
     } finally {
       setCheckingMembership(false);
     }
@@ -155,13 +216,15 @@ export const useJoinProgram = (
       setTxStatus('confirming');
       setFinalized(false);
 
+      // Save pending state to localStorage FIRST (instant, reliable)
+      savePendingJoin(address);
+
       // Optimistically increment counter
       onOptimisticJoin?.();
 
-      // Register in backend as pending (no tx_hash yet) - MUST await!
-      if (address) {
-        await registerMember(address, '');
-      }
+      // Register in backend as pending (no tx_hash yet)
+      // Don't await - localStorage is our reliable source now
+      registerMember(address, '');
 
       // Start watching for finalization
       startWatchingFinalization();
