@@ -46,10 +46,8 @@ function App() {
   // Vara API (for transactions)
   const { varaApi, isReady: varaApiReady } = useVaraApi(ethereumClient, wallet.isConnected);
 
-  // Member count - works without wallet!
-  const { memberCount, isLoading: countLoading, incrementCount } = useMemberCount(sails, varaApi);
+  const { memberCount, setMemberCount } = useMemberCount(sails, varaApi);
 
-  // Join program logic
   const {
     isJoined,
     loading,
@@ -59,7 +57,15 @@ function App() {
     txStatus,
     checkingMembership,
     handleJoin,
-  } = useJoinProgram(varaApi, sails, wallet.address, wallet.isConnected, wallet.publicClient, incrementCount);
+  } = useJoinProgram(
+    varaApi,
+    sails,
+    wallet.address,
+    wallet.isConnected,
+    wallet.publicClient,
+    memberCount,
+    setMemberCount
+  );
 
   const handleConnect = async () => {
     if (wallet.isConnecting) return;

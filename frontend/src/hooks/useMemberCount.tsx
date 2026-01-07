@@ -16,8 +16,7 @@ export const useMemberCount = (sails: Sails | null, walletApi?: VaraEthApi | nul
   const isReady = walletApi ? true : readOnlyReady;
 
   const fetchCount = useCallback(async () => {
-    if (!api || !sails) return;
-    if (Date.now() < pausedUntilRef.current) return;
+    if (!api || !sails || Date.now() < pausedUntilRef.current) return;
 
     try {
       const countPayload = sails.services.OneOfUs.queries.Count.encodePayload();
@@ -38,10 +37,10 @@ export const useMemberCount = (sails: Sails | null, walletApi?: VaraEthApi | nul
     return () => clearInterval(interval);
   }, [api, sails, isReady, fetchCount]);
 
-  const incrementCount = useCallback(() => {
-    setMemberCount(prev => prev + 1);
+  const setCount = useCallback((count: number) => {
+    setMemberCount(count);
     pausedUntilRef.current = Date.now() + 60000;
   }, []);
 
-  return { memberCount, isLoading, refetchCount: fetchCount, incrementCount };
+  return { memberCount, isLoading, setMemberCount: setCount };
 };
