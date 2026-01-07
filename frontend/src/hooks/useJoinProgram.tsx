@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { VaraEthApi } from '@vara-eth/api';
 import { Sails } from 'sails-js';
 import { type PublicClient } from 'viem';
@@ -29,6 +29,43 @@ export const useJoinProgram = (
   const [error, setError] = useState<string | null>(null);
   const [txStatus, setTxStatus] = useState<TxStatus>('idle');
   const [checkingMembership, setCheckingMembership] = useState(false);
+  const unwatchRef = useRef<(() => void) | null>(null);
+
+  // Start watching for StateChanged event
+  const startWatchingFinalization = useCallback(() => {
+    if (!publicClient || !address || unwatchRef.current) return;
+
+    const userAddress = address;
+    unwatchRef.current = publicClient.watchContractEvent({
+      address: ENV.PROGRAM_ID,
+      abi: [STATE_CHANGED_EVENT],
+      eventName: 'StateChanged',
+      onLogs: (logs) => {
+        if (logs.length > 0) {
+          const log = logs[0];
+          const hash = log.transactionHash;
+          setTxHash(hash);
+          setFinalized(true);
+          setTxStatus('success');
+          setLoading(false);
+          unwatchRef.current?.();
+          unwatchRef.current = null;
+          updateMemberTxHash(userAddress, hash);
+        }
+      },
+    });
+
+    // Cleanup after 5 minutes max
+    setTimeout(() => {
+      if (unwatchRef.current) {
+        unwatchRef.current();
+        unwatchRef.current = null;
+        setFinalized(true);
+        setTxStatus('success');
+        setLoading(false);
+      }
+    }, 300000);
+  }, [publicClient, address]);
 
   const checkMembership = useCallback(async () => {
     if (!address || !isConnected) return;
@@ -38,9 +75,17 @@ export const useJoinProgram = (
       const result = await checkMember(address);
       if (result.isMember) {
         setIsJoined(true);
-        setFinalized(true);
+        
         if (result.member?.tx_hash) {
+          // Fully finalized - has tx_hash
           setTxHash(result.member.tx_hash);
+          setFinalized(true);
+          setTxStatus('success');
+        } else {
+          // Pending - registered but no tx_hash yet
+          setFinalized(false);
+          setTxStatus('confirming');
+          setLoading(true);
         }
       }
     } catch {
@@ -53,6 +98,17 @@ export const useJoinProgram = (
   useEffect(() => {
     checkMembership();
   }, [checkMembership]);
+
+  // Start watching when we detect pending state (after page reload)
+  useEffect(() => {
+    if (isJoined && !finalized && txStatus === 'confirming' && publicClient) {
+      startWatchingFinalization();
+    }
+    return () => {
+      unwatchRef.current?.();
+      unwatchRef.current = null;
+    };
+  }, [isJoined, finalized, txStatus, publicClient, startWatchingFinalization]);
 
   const handleJoin = async () => {
     setError(null);
@@ -102,44 +158,13 @@ export const useJoinProgram = (
       // Optimistically increment counter
       onOptimisticJoin?.();
 
-      // Register in backend
+      // Register in backend as pending (no tx_hash yet)
       if (address) {
         registerMember(address, '');
       }
 
-      // Watch for StateChanged event on Mirror contract (program address)
-      if (publicClient && address) {
-        const userAddress = address;
-        const unwatch = publicClient.watchContractEvent({
-          address: ENV.PROGRAM_ID,
-          abi: [STATE_CHANGED_EVENT],
-          eventName: 'StateChanged',
-          onLogs: (logs) => {
-            if (logs.length > 0) {
-              const log = logs[0];
-              const hash = log.transactionHash;
-              setTxHash(hash);
-              setFinalized(true);
-              setTxStatus('success');
-              unwatch();
-              updateMemberTxHash(userAddress, hash);
-            }
-          },
-        });
-
-        // Cleanup after 5 minutes max
-        setTimeout(() => {
-          unwatch();
-          if (!finalized) {
-            setFinalized(true);
-            setTxStatus('success');
-          }
-        }, 300000);
-      } else {
-        // No publicClient, just mark as success
-        setFinalized(true);
-        setTxStatus('success');
-      }
+      // Start watching for finalization
+      startWatchingFinalization();
 
       return true;
     } catch (e: any) {
@@ -155,9 +180,8 @@ export const useJoinProgram = (
       } else {
         setError('Something went wrong. Please try again.');
       }
-      return false;
-    } finally {
       setLoading(false);
+      return false;
     }
   };
 
