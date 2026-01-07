@@ -26,6 +26,8 @@ declare global {
  * Если есть несколько (window.ethereum.providers),
  * берём MetaMask по флагу isMetaMask.
  */
+const DISCONNECTED_KEY = 'one-of-us-wallet-disconnected';
+
 function pickEthereumProvider(): (EIP1193Provider & any) | null {
   const eth = window.ethereum;
   if (!eth) return null;
@@ -84,6 +86,12 @@ export function useWallet() {
 
     const init = async () => {
       try {
+        // Check if user manually disconnected
+        const wasDisconnected = localStorage.getItem(DISCONNECTED_KEY) === 'true';
+        if (wasDisconnected) {
+          return;
+        }
+
         const accounts = (await eth.request({
           method: 'eth_accounts',
         })) as string[];
@@ -189,6 +197,9 @@ export function useWallet() {
     setIsConnecting(true);
     setError(null);
 
+    // Clear disconnect flag when user explicitly connects
+    localStorage.removeItem(DISCONNECTED_KEY);
+
     try {
       const accounts = (await eth.request({
         method: 'eth_requestAccounts',
@@ -232,6 +243,9 @@ export function useWallet() {
   }, [buildClients]);
 
   const disconnect = useCallback(() => {
+    // Set flag so we don't auto-connect on page reload
+    localStorage.setItem(DISCONNECTED_KEY, 'true');
+    
     setAddress(null);
     setIsConnected(false);
     setError(null);
