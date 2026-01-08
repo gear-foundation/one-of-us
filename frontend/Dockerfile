@@ -22,8 +22,10 @@ ENV VITE_PROGRAM_ID=${VITE_PROGRAM_ID} \
     VITE_API_URL=${VITE_API_URL} \
     DISABLE_ESLINT_PLUGIN=true
 
-RUN npm run build && npm install --global serve
+RUN npm run build && npm install --global serve \
+  && mkdir -p /app/public/one-of-us \
+  && cp -r /app/dist/* /app/public/one-of-us/
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "/app/dist"]
+CMD ["serve", "-s", "/app/public", "-l", "3000"]
