@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/one-of-us",
   "type": "module",
   "dependencies": {
     "@tanstack/react-query": "^5.90.11",
