@@ -1,0 +1,5 @@
+{
+  "public": "dist",
+  "cleanUrls": false,
+  "trailingSlash": true
+}
