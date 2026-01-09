@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/one-of-us/!(assets|favicon.ico|logo*|manifest.json|robots.txt)**",
-      "destination": "/one-of-us/index.html"
-    }
-  ]
-}
