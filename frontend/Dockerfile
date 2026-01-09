@@ -24,7 +24,7 @@ ENV VITE_PROGRAM_ID=${VITE_PROGRAM_ID} \
 
 RUN npm run build && npm install --global serve
 
-COPY serve.json ./dist/
+COPY serve.json ./dist/serve.json
 
 EXPOSE 3000
 
