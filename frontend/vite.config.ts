@@ -5,7 +5,7 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 
 // Vite config with Node polyfills for web3/kzg-wasm
 export default defineConfig({
-  base: '/one-of-us/',
+  base: '/',
   plugins: [react()],
 
   resolve: {
