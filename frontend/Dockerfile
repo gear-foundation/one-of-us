@@ -26,4 +26,4 @@ RUN npm run build && npm install --global serve
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "dist", "-l", "3000", "--no-clipboard"]
+CMD ["serve", "-s", "dist", "-l", "3000"]
