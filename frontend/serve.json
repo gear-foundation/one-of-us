@@ -1,5 +1,4 @@
 {
-  "public": "dist",
   "rewrites": [
     {
       "source": "/one-of-us/!(assets|favicon.ico|logo*|manifest.json|robots.txt)**",
