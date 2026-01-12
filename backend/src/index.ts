@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { CONFIG } from './config.js';
-import { addMember, getMember, getAllMembers, getMemberCount, updateMemberTxHash } from './db.js';
+import { initDb, addMember, getMember, getAllMembers, getMemberCount, updateMemberTxHash } from './db.js';
 
 const app = express();
 
@@ -12,19 +12,19 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/members/count', (_req, res) => {
+app.get('/api/members/count', async (_req, res) => {
   try {
-    const count = getMemberCount();
+    const count = await getMemberCount();
     res.json({ count });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/members/:address', (req, res) => {
+app.get('/api/members/:address', async (req, res) => {
   try {
     const { address } = req.params;
-    const member = getMember(address);
+    const member = await getMember(address);
 
     if (member) {
       res.json({ isMember: true, member });
@@ -36,7 +36,7 @@ app.get('/api/members/:address', (req, res) => {
   }
 });
 
-app.get('/api/members', (req, res) => {
+app.get('/api/members', async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 0;
     const pageSize = Math.min(
@@ -44,8 +44,8 @@ app.get('/api/members', (req, res) => {
       500
     );
 
-    const members = getAllMembers(page, pageSize);
-    const total = getMemberCount();
+    const members = await getAllMembers(page, pageSize);
+    const total = await getMemberCount();
 
     res.json({
       members,
@@ -59,7 +59,7 @@ app.get('/api/members', (req, res) => {
   }
 });
 
-app.post('/api/members', (req, res) => {
+app.post('/api/members', async (req, res) => {
   try {
     const { address, txHash } = req.body;
 
@@ -67,19 +67,20 @@ app.post('/api/members', (req, res) => {
       return res.status(400).json({ error: 'Address is required' });
     }
 
-    const added = addMember(address, txHash);
+    const added = await addMember(address, txHash);
+    const count = await getMemberCount();
 
     if (added) {
       res.status(201).json({
         success: true,
         message: 'Member registered',
-        count: getMemberCount(),
+        count,
       });
     } else {
       res.json({
         success: false,
         message: 'Member already exists',
-        count: getMemberCount(),
+        count,
       });
     }
   } catch (err: any) {
@@ -87,7 +88,7 @@ app.post('/api/members', (req, res) => {
   }
 });
 
-app.put('/api/members/:address/txHash', (req, res) => {
+app.put('/api/members/:address/txHash', async (req, res) => {
   try {
     const { address } = req.params;
     const { txHash } = req.body;
@@ -96,7 +97,7 @@ app.put('/api/members/:address/txHash', (req, res) => {
       return res.status(400).json({ error: 'txHash is required' });
     }
 
-    const updated = updateMemberTxHash(address, txHash);
+    const updated = await updateMemberTxHash(address, txHash);
 
     if (updated) {
       res.json({ success: true });
@@ -108,8 +109,15 @@ app.put('/api/members/:address/txHash', (req, res) => {
   }
 });
 
-app.listen(CONFIG.PORT, () => {
-  console.log(`🚀 Backend running on http://localhost:${CONFIG.PORT}`);
-  console.log(`   Program ID: ${CONFIG.PROGRAM_ID}`);
-  console.log(`   Members: ${getMemberCount()}`);
-});
+async function start() {
+  await initDb();
+  const count = await getMemberCount();
+  
+  app.listen(CONFIG.PORT, () => {
+    console.log(`🚀 Backend running on http://localhost:${CONFIG.PORT}`);
+    console.log(`   Program ID: ${CONFIG.PROGRAM_ID}`);
+    console.log(`   Members: ${count}`);
+  });
+}
+
+start().catch(console.error);

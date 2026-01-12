@@ -16,5 +16,5 @@ const required = (key: string): string => {
 export const CONFIG = {
   PORT: parseInt(process.env.BACKEND_PORT || '3001'),
   PROGRAM_ID: required('PROGRAM_ID') as `0x${string}`,
-  DB_PATH: join(__dirname, '..', 'data', 'members.db'),
+  DATABASE_URL: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/one_of_us',
 } as const;

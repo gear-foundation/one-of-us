@@ -1,26 +1,25 @@
-import Database from 'better-sqlite3';
-import { mkdirSync, existsSync } from 'fs';
-import { dirname } from 'path';
+import pg from 'pg';
 import { CONFIG } from './config.js';
 
-const dataDir = dirname(CONFIG.DB_PATH);
-if (!existsSync(dataDir)) {
-  mkdirSync(dataDir, { recursive: true });
+const { Pool } = pg;
+
+const pool = new Pool({
+  connectionString: CONFIG.DATABASE_URL,
+});
+
+export async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS members (
+      id SERIAL PRIMARY KEY,
+      address TEXT UNIQUE NOT NULL,
+      tx_hash TEXT,
+      joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_address ON members(address);
+    CREATE INDEX IF NOT EXISTS idx_joined_at ON members(joined_at);
+  `);
 }
-
-const db = new Database(CONFIG.DB_PATH);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS members (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    address TEXT UNIQUE NOT NULL,
-    tx_hash TEXT,
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-  
-  CREATE INDEX IF NOT EXISTS idx_address ON members(address);
-  CREATE INDEX IF NOT EXISTS idx_joined_at ON members(joined_at);
-`);
 
 export interface Member {
   id: number;
@@ -29,56 +28,57 @@ export interface Member {
   joined_at: string;
 }
 
-export function addMember(address: string, txHash?: string): boolean {
+export async function addMember(address: string, txHash?: string): Promise<boolean> {
   const normalizedAddress = address.toLowerCase();
 
   try {
-    const stmt = db.prepare(`
-      INSERT OR IGNORE INTO members (address, tx_hash)
-      VALUES (?, ?)
-    `);
-    const result = stmt.run(normalizedAddress, txHash || null);
-    return result.changes > 0;
+    const result = await pool.query(
+      `INSERT INTO members (address, tx_hash) VALUES ($1, $2) ON CONFLICT (address) DO NOTHING`,
+      [normalizedAddress, txHash || null]
+    );
+    return (result.rowCount ?? 0) > 0;
   } catch {
     return false;
   }
 }
 
-export function isMember(address: string): boolean {
+export async function isMember(address: string): Promise<boolean> {
   const normalizedAddress = address.toLowerCase();
-  const stmt = db.prepare('SELECT 1 FROM members WHERE address = ?');
-  return !!stmt.get(normalizedAddress);
+  const result = await pool.query('SELECT 1 FROM members WHERE address = $1', [normalizedAddress]);
+  return result.rows.length > 0;
 }
 
-export function getMember(address: string): Member | null {
+export async function getMember(address: string): Promise<Member | null> {
   const normalizedAddress = address.toLowerCase();
-  const stmt = db.prepare('SELECT * FROM members WHERE address = ?');
-  return stmt.get(normalizedAddress) as Member | null;
+  const result = await pool.query('SELECT * FROM members WHERE address = $1', [normalizedAddress]);
+  return result.rows[0] || null;
 }
 
-export function getAllMembers(page = 0, pageSize = 100): Member[] {
+export async function getAllMembers(page = 0, pageSize = 100): Promise<Member[]> {
   const offset = page * pageSize;
-  const stmt = db.prepare(
-    'SELECT * FROM members ORDER BY joined_at DESC LIMIT ? OFFSET ?'
+  const result = await pool.query(
+    'SELECT * FROM members ORDER BY joined_at DESC LIMIT $1 OFFSET $2',
+    [pageSize, offset]
   );
-  return stmt.all(pageSize, offset) as Member[];
+  return result.rows;
 }
 
-export function getMemberCount(): number {
-  const stmt = db.prepare('SELECT COUNT(*) as count FROM members');
-  const result = stmt.get() as { count: number };
-  return result.count;
+export async function getMemberCount(): Promise<number> {
+  const result = await pool.query('SELECT COUNT(*) as count FROM members');
+  return parseInt(result.rows[0].count);
 }
 
-export function updateMemberTxHash(address: string, txHash: string): boolean {
+export async function updateMemberTxHash(address: string, txHash: string): Promise<boolean> {
   const normalizedAddress = address.toLowerCase();
   try {
-    const stmt = db.prepare('UPDATE members SET tx_hash = ? WHERE address = ?');
-    const result = stmt.run(txHash, normalizedAddress);
-    return result.changes > 0;
+    const result = await pool.query(
+      'UPDATE members SET tx_hash = $1 WHERE address = $2',
+      [txHash, normalizedAddress]
+    );
+    return (result.rowCount ?? 0) > 0;
   } catch {
     return false;
   }
 }
 
-export default db;
+export default pool;
