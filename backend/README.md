@@ -2,19 +2,10 @@
 
 Backend service for tracking members who joined the "One of Us" program on Vara.eth.
 
-## Quick Start with Docker
-
-```bash
-# Set required environment variable
-export PROGRAM_ID=0x...
-
-# Run with docker-compose
-docker-compose up -d
-```
-
 ## Local Development
 
 ### Prerequisites
+
 - Node.js 20+
 - PostgreSQL 16+
 
@@ -45,11 +36,11 @@ npm run dev
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PROGRAM_ID` | Vara program address (required) | - |
-| `DATABASE_URL` | PostgreSQL connection string | `postgres://postgres:postgres@localhost:5432/one_of_us` |
-| `BACKEND_PORT` | Server port | `3001` |
+| Variable       | Description                        | Required |
+| -------------- | ---------------------------------- | -------- |
+| `PROGRAM_ID`   | Vara program address               | Yes      |
+| `DATABASE_URL` | PostgreSQL connection string       | Yes      |
+| `BACKEND_PORT` | Server port (default: 3001)        | No       |
 
 ## API Endpoints
 
@@ -60,6 +51,7 @@ npm run dev
 Returns server health status.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -76,6 +68,7 @@ Returns server health status.
 Returns the total number of registered members.
 
 **Response:**
+
 ```json
 {
   "count": 42
@@ -91,9 +84,11 @@ Returns the total number of registered members.
 Check if an address is a registered member and get their details.
 
 **Parameters:**
+
 - `address` (path) - Ethereum address to check
 
 **Response (member exists):**
+
 ```json
 {
   "isMember": true,
@@ -107,6 +102,7 @@ Check if an address is a registered member and get their details.
 ```
 
 **Response (member not found):**
+
 ```json
 {
   "isMember": false
@@ -114,6 +110,7 @@ Check if an address is a registered member and get their details.
 ```
 
 **Notes:**
+
 - `tx_hash` is `null` for pending (not yet finalized) members
 - Address comparison is case-insensitive
 
@@ -126,10 +123,12 @@ Check if an address is a registered member and get their details.
 Get paginated list of all members.
 
 **Query Parameters:**
+
 - `page` (optional, default: 0) - Page number
 - `pageSize` (optional, default: 100, max: 500) - Items per page
 
 **Response:**
+
 ```json
 {
   "members": [
@@ -156,6 +155,7 @@ Get paginated list of all members.
 Register a new member. Used when a transaction is accepted but not yet finalized.
 
 **Body:**
+
 ```json
 {
   "address": "0x1234...",
@@ -164,10 +164,12 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 ```
 
 **Parameters:**
+
 - `address` (required) - Ethereum address
 - `txHash` (optional) - Transaction hash (empty string or omit for pending)
 
 **Response (success):**
+
 ```json
 {
   "success": true,
@@ -177,6 +179,7 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 ```
 
 **Response (already exists):**
+
 ```json
 {
   "success": false,
@@ -194,9 +197,11 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 Update the transaction hash for a member after their transaction is finalized.
 
 **Parameters:**
+
 - `address` (path) - Ethereum address
 
 **Body:**
+
 ```json
 {
   "txHash": "0xabcd..."
@@ -204,6 +209,7 @@ Update the transaction hash for a member after their transaction is finalized.
 ```
 
 **Response (success):**
+
 ```json
 {
   "success": true
@@ -211,6 +217,7 @@ Update the transaction hash for a member after their transaction is finalized.
 ```
 
 **Response (not found):**
+
 ```json
 {
   "error": "Member not found"

@@ -28,7 +28,10 @@ export interface Member {
   joined_at: string;
 }
 
-export async function addMember(address: string, txHash?: string): Promise<boolean> {
+export async function addMember(
+  address: string,
+  txHash?: string
+): Promise<boolean> {
   const normalizedAddress = address.toLowerCase();
 
   try {
@@ -44,17 +47,24 @@ export async function addMember(address: string, txHash?: string): Promise<boole
 
 export async function isMember(address: string): Promise<boolean> {
   const normalizedAddress = address.toLowerCase();
-  const result = await pool.query('SELECT 1 FROM members WHERE address = $1', [normalizedAddress]);
+  const result = await pool.query('SELECT 1 FROM members WHERE address = $1', [
+    normalizedAddress,
+  ]);
   return result.rows.length > 0;
 }
 
 export async function getMember(address: string): Promise<Member | null> {
   const normalizedAddress = address.toLowerCase();
-  const result = await pool.query('SELECT * FROM members WHERE address = $1', [normalizedAddress]);
+  const result = await pool.query('SELECT * FROM members WHERE address = $1', [
+    normalizedAddress,
+  ]);
   return result.rows[0] || null;
 }
 
-export async function getAllMembers(page = 0, pageSize = 100): Promise<Member[]> {
+export async function getAllMembers(
+  page = 0,
+  pageSize = 100
+): Promise<Member[]> {
   const offset = page * pageSize;
   const result = await pool.query(
     'SELECT * FROM members ORDER BY joined_at DESC LIMIT $1 OFFSET $2',
@@ -68,7 +78,10 @@ export async function getMemberCount(): Promise<number> {
   return parseInt(result.rows[0].count);
 }
 
-export async function updateMemberTxHash(address: string, txHash: string): Promise<boolean> {
+export async function updateMemberTxHash(
+  address: string,
+  txHash: string
+): Promise<boolean> {
   const normalizedAddress = address.toLowerCase();
   try {
     const result = await pool.query(
