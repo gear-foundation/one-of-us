@@ -11,6 +11,8 @@ COPY . .
 
 RUN mkdir -p /app/data
 
+VOLUME ["/app/data"]
+
 EXPOSE 3001
 
 CMD ["npm", "start"]

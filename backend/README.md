@@ -22,6 +22,7 @@ See `.env.example` or `src/config.ts` for configuration options.
 Returns server health status.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -38,6 +39,7 @@ Returns server health status.
 Returns the total number of registered members.
 
 **Response:**
+
 ```json
 {
   "count": 42
@@ -53,9 +55,11 @@ Returns the total number of registered members.
 Check if an address is a registered member and get their details.
 
 **Parameters:**
+
 - `address` (path) - Ethereum address to check
 
 **Response (member exists):**
+
 ```json
 {
   "isMember": true,
@@ -69,6 +73,7 @@ Check if an address is a registered member and get their details.
 ```
 
 **Response (member not found):**
+
 ```json
 {
   "isMember": false
@@ -76,6 +81,7 @@ Check if an address is a registered member and get their details.
 ```
 
 **Notes:**
+
 - `tx_hash` is `null` for pending (not yet finalized) members
 - Address comparison is case-insensitive
 
@@ -88,10 +94,12 @@ Check if an address is a registered member and get their details.
 Get paginated list of all members.
 
 **Query Parameters:**
+
 - `page` (optional, default: 0) - Page number
 - `pageSize` (optional, default: 100, max: 500) - Items per page
 
 **Response:**
+
 ```json
 {
   "members": [
@@ -118,6 +126,7 @@ Get paginated list of all members.
 Register a new member. Used when a transaction is accepted but not yet finalized.
 
 **Body:**
+
 ```json
 {
   "address": "0x1234...",
@@ -126,10 +135,12 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 ```
 
 **Parameters:**
+
 - `address` (required) - Ethereum address
 - `txHash` (optional) - Transaction hash (empty string or omit for pending)
 
 **Response (success):**
+
 ```json
 {
   "success": true,
@@ -139,6 +150,7 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 ```
 
 **Response (already exists):**
+
 ```json
 {
   "success": false,
@@ -148,6 +160,7 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "Address is required"
@@ -163,9 +176,11 @@ Register a new member. Used when a transaction is accepted but not yet finalized
 Update the transaction hash for a member after their transaction is finalized.
 
 **Parameters:**
+
 - `address` (path) - Ethereum address
 
 **Body:**
+
 ```json
 {
   "txHash": "0xabcd..."
@@ -173,6 +188,7 @@ Update the transaction hash for a member after their transaction is finalized.
 ```
 
 **Response (success):**
+
 ```json
 {
   "success": true
@@ -180,6 +196,7 @@ Update the transaction hash for a member after their transaction is finalized.
 ```
 
 **Response (not found):**
+
 ```json
 {
   "error": "Member not found"
@@ -187,6 +204,7 @@ Update the transaction hash for a member after their transaction is finalized.
 ```
 
 **Error Response:**
+
 ```json
 {
   "error": "txHash is required"
@@ -219,4 +237,3 @@ CREATE TABLE members (
 ## CORS
 
 CORS is enabled for all origins to support frontend development.
-

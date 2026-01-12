@@ -22,9 +22,9 @@ export const Footer = () => {
           <a href="https://start.vara.network/" target="_blank" rel="noopener noreferrer" className="footer-link">
             Start with Vara.eth
           </a>
-          <a href="https://airlyft.one/" target="_blank" rel="noopener noreferrer" className="footer-link">
+          {/* <a href="https://airlyft.one/" target="_blank" rel="noopener noreferrer" className="footer-link">
             AirLyft Campaign
-          </a>
+          </a> */}
         </div>
       </div>
       <p className="footer-text">Powered by Vara.eth</p>
