@@ -2,45 +2,22 @@
 
 Backend service for tracking members who joined the "One of Us" program on Vara.eth.
 
-## Local Development
-
-### Prerequisites
-
-- Node.js 20+
-- PostgreSQL 16+
-
-### Setup
+## Setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Start PostgreSQL (using docker)
-docker run -d --name one-of-us-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=one_of_us \
-  -p 5432:5432 \
-  postgres:16-alpine
-
-# Create .env file
-cat > .env << EOF
-PROGRAM_ID=0x...
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/one_of_us
-BACKEND_PORT=3001
-EOF
-
-# Run in development mode
+cp .env.example .env
+# Edit .env with your values
 npm run dev
 ```
 
 ## Environment Variables
 
-| Variable       | Description                        | Required |
-| -------------- | ---------------------------------- | -------- |
-| `PROGRAM_ID`   | Vara program address               | Yes      |
-| `DATABASE_URL` | PostgreSQL connection string       | Yes      |
-| `BACKEND_PORT` | Server port (default: 3001)        | No       |
+| Variable       | Description                  | Required |
+| -------------- | ---------------------------- | -------- |
+| `PROGRAM_ID`   | Vara program address         | Yes      |
+| `DATABASE_URL` | PostgreSQL connection string | Yes      |
+| `BACKEND_PORT` | Server port (default: 3001)  | No       |
 
 ## API Endpoints
 
