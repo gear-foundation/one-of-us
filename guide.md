@@ -81,7 +81,7 @@ cargo build -p ethexe-cli -r
 ```bash
 ./target/release/ethexe --cfg none tx \
   --ethereum-rpc "wss://hoodi-reth-rpc.gear-tech.io/ws" \
-  --ethereum-router "0x579D6098197517140e5aec47c78d6f7181916dd6" \
+  --ethereum-router "0xBC888a8B050B9B76a985d91c815d2c4f2131a58A" \
   --sender "$SENDER_ADDRESS" \
   upload sources/one_of_us.opt.wasm -w
 ```
@@ -99,58 +99,63 @@ Code ID: 0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80154003b74dd8829d
 
 ## Program Creation
 
-Install the dependencies to be able to run the scripts:
+Clone the repository and set up your environment:
+
+```bash
+git clone https://github.com/gear-foundation/one-of-us.git
+cd one-of-us
+```
+
+Copy the environment template and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and fill in the required values:
+
+```bash
+# Pre-configured for Hoodi testnet
+ROUTER_ADDRESS=0xBC888a8B050B9B76a985d91c815d2c4f2131a58A
+WVARA_ADDRESS=0x2C960bd5347C2Eb4d9bBEA0CB9671C5b641Dcbb9
+
+# RPC endpoints (Hoodi)
+ETH_RPC=https://hoodi-reth-rpc.gear-tech.io
+ETH_RPC_WS=wss://hoodi-reth-rpc.gear-tech.io/ws
+VARA_ETH_WS=ws://vara-eth-validator-1.gear-tech.io:9944
+
+# Your credentials
+PRIVATE_KEY=0x...           # Your Ethereum private key
+
+# Add after upload step
+CODE_ID=0x...               # Your validated code hash from upload
+
+# Add after create step
+PROGRAM_ID=0x...            # Your program Mirror address
+```
+
+Install dependencies and navigate to the deploy folder:
 
 ```bash
 npm install
+cd deploy
 ```
+
+> ⚠️ **Important:** All scripts below are run from the `deploy/` directory.
 
 Uploading gives you a validated `codeId`, but there's still no running program yet. Program creation is the moment your WASM turns into an actual instance anchored on L1.
 
-To create the program, run:
+Add your `CODE_ID` from the upload step to `.env`, then create the program:
 
 ```bash
 npm run create
 ```
 
+After successful creation, add the returned `PROGRAM_ID` to your `.env` file.
+
 Once you create it, Ethereum deploys a dedicated **Mirror contract** for your program. That Mirror becomes your on-chain gateway: the mailbox where you send messages, read the latest state hash, top up execution balance, and generally interact with the program.
 
-🔗 [View full script: create-program.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program.ts)
-
-```typescript
-import { createPublicClient, createWalletClient, http, defineChain } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { EthereumClient } from '@vara-eth/api';
-
-const hoodi = defineChain({
-  id: 560048,
-  name: 'Hoodi Testnet',
-  network: 'hoodi',
-  nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
-  rpcUrls: { default: { http: [ETH_RPC] } },
-  testnet: true,
-});
-
-async function main() {
-  const account = privateKeyToAccount(PRIVATE_KEY);
-
-  const publicClient = createPublicClient({ chain: hoodi, transport: http(ETH_RPC) });
-  const walletClient = createWalletClient({ account, chain: hoodi, transport: http(ETH_RPC) });
-
-  // Setup Vara.eth client
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
-  await ethereumClient.isInitialized;
-  const router = ethereumClient.router;
-
-  // Create program instance
-  const tx = await router.createProgram(CODE_ID);
-  const receipt = await tx.sendAndWaitForReceipt();
-
-  // Get the program ID (Mirror address)
-  const programId = await tx.getProgramId();
-  console.log('Program ID:', programId);
-}
-```
+🔗 [View script: create-program.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program.ts)
 
 ### Option 2: Create Program with Solidity ABI Interface (Foundry)
 
@@ -164,88 +169,25 @@ The pre-built `OneOfUs.sol` is already included in the [`sources/`](https://gith
 # Install Foundry
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
-
-# Install dependencies (from project root)
-forge install
 ```
 
-#### Foundry Deploy Script
+Install Foundry dependencies (run from project root, not `deploy/`):
 
-Create a deploy script at `deploy/DeployOneOfUsAbi.s.sol`:
-
-🔗 [View full script: DeployOneOfUsAbi.s.sol](https://github.com/gear-foundation/one-of-us/blob/master/deploy/DeployOneOfUsAbi.s.sol)
-
-```solidity
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
-
-import {Script, console} from "forge-std/Script.sol";
-import {OneOfUsAbi} from "../OneOfUs.sol";
-
-contract DeployOneOfUsAbi is Script {
-    function run() external returns (address) {
-        bytes32 pkBytes = vm.envBytes32("PRIVATE_KEY");
-        uint256 deployerPrivateKey = uint256(pkBytes);
-
-        vm.startBroadcast(deployerPrivateKey);
-
-        OneOfUsAbi abiContract = new OneOfUsAbi();
-        console.log("OneOfUsAbi deployed at:", address(abiContract));
-
-        vm.stopBroadcast();
-        return address(abiContract);
-    }
-}
+```bash
+cd ..
+forge install
+cd deploy
 ```
 
 #### Deploy and Create Program
 
-The TypeScript script handles both deployment via Foundry and program creation.
-
-Run the script to create the program with the ABI.
+Run the script to create the program with the ABI:
 
 ```bash
 npm run create:abi
 ```
 
-🔗 [View full script: create-program-abi.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program-abi.ts)
-
-```typescript
-import { execSync } from 'child_process';
-import { EthereumClient } from '@vara-eth/api';
-
-function deployWithForge(): string {
-  const etherscanKey = process.env.ETHERSCAN_API_KEY;
-  const verifyFlag = etherscanKey ? `--verify --etherscan-api-key ${etherscanKey}` : '';
-
-  const output = execSync(
-    `forge script deploy/DeployOneOfUsAbi.s.sol:DeployOneOfUsAbi \
-      --rpc-url ${ETH_RPC} \
-      --broadcast ${verifyFlag} -vvv`,
-    { cwd: projectRoot, encoding: 'utf-8' }
-  );
-
-  // Parse deployed address from output
-  const match = output.match(/deployed at:\s*(0x[a-fA-F0-9]{40})/i);
-  return match[1];
-}
-
-async function main() {
-  // Step 1: Deploy ABI contract with Foundry
-  const abiAddress = deployWithForge();
-  console.log('ABI Contract deployed:', abiAddress);
-
-  // Step 2: Create program with ABI interface
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
-  await ethereumClient.isInitialized;
-
-  const tx = await ethereumClient.router.createProgramWithAbiInterface(CODE_ID, abiAddress);
-  const receipt = await tx.sendAndWaitForReceipt();
-  const programId = await tx.getProgramId();
-
-  console.log('Program ID:', programId);
-}
-```
+🔗 [View script: create-program-abi.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program-abi.ts) | [View Foundry script: DeployOneOfUsAbi.s.sol](https://github.com/gear-foundation/one-of-us/blob/master/deploy/DeployOneOfUsAbi.s.sol)
 
 #### Link Mirror as Proxy on Etherscan
 
@@ -275,28 +217,7 @@ Run the script to top up the program balance:
 npm run fund
 ```
 
-🔗 [View full script: fund-program.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/fund-program.ts)
-
-```typescript
-import { EthereumClient, getMirrorClient } from '@vara-eth/api';
-
-async function main() {
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
-  await ethereumClient.isInitialized;
-  const wvara = ethereumClient.wvara;
-  const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
-
-  const amount = BigInt(10_000_000_000_000); // 10 wVARA
-
-  // Step 1: Approve wVARA for the program to spend
-  const approveTx = await wvara.approve(PROGRAM_ID, amount);
-  await approveTx.sendAndWaitForReceipt();
-
-  // Step 2: Top up executable balance via Mirror
-  const topUpTx = await mirror.executableBalanceTopUp(amount);
-  await topUpTx.sendAndWaitForReceipt();
-}
-```
+🔗 [View script: fund-program.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/fund-program.ts)
 
 ## Program Interaction
 
@@ -315,50 +236,19 @@ This is the normal Ethereum flow. You still use Sails ABI/IDL so you never touch
 >
 > If your program's Mirror contract is verified with ABI (see "Link Mirror as Proxy" above), you can interact with it directly through Etherscan. Go to the Mirror address on Hoodi Etherscan, open the **Write Contract** tab, connect your wallet, and call `sendMessage` with your encoded payload. Great for quick tests without writing code.
 
-Run the script to init the program:
+First, initialize the program:
 
 ```bash
 npm run init
 ```
 
-and then to send the message to the program
+Then send a message to the program:
 
 ```bash
 npm run classic
 ```
 
-🔗 [View full script: classic-tx.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/classic-tx.ts)
-
-```typescript
-import { EthereumClient, getMirrorClient } from '@vara-eth/api';
-import { Sails } from 'sails-js';
-import { SailsIdlParser } from 'sails-js-parser';
-
-async function main() {
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
-  await ethereumClient.isInitialized;
-  const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
-
-  // Initialize Sails from your program IDL
-  const parser = await SailsIdlParser.new();
-  const sails = new Sails(parser);
-  sails.parseIdl(readFileSync('./one_of_us.idl', 'utf-8'));
-
-  // Encode a regular call using ABI/IDL
-  const payload = sails.services.OneOfUs.functions.JoinUs.encodePayload();
-
-  // Send through Ethereum to Mirror
-  const tx = await mirror.sendMessage(payload, 0n);
-  const receipt = await tx.sendAndWaitForReceipt();
-
-  // Wait for the program reply
-  const { waitForReply } = await tx.setupReplyListener();
-  const { payload: replyPayload } = await waitForReply;
-
-  // Decode result
-  const result = sails.services.OneOfUs.functions.JoinUs.decodeResult(replyPayload);
-}
-```
+🔗 [View script: classic-tx.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/classic-tx.ts)
 
 ### Pre-confirmed Transaction (Injected)
 
@@ -370,41 +260,13 @@ Instead of waiting for an L1 transaction to be mined, you submit your message di
 >
 > Your users don't even have to pay for this interaction. Execution is funded from the program's internal wVARA balance — not from the user's pocket. The user just signs in MetaMask, gets an instant pre-confirmation, and moves on.
 
-Run the script to send the injected transaction:
+Run the script to send an injected transaction:
 
 ```bash
 npm run injected
 ```
 
-🔗 [View full script: test-injected.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/test-injected.ts)
-
-🔗 [Full @vara-eth/api documentation](https://github.com/gear-tech/gear-js/tree/main/apis/vara-eth)
-
-```typescript
-import { EthereumClient, VaraEthApi, WsVaraEthProvider } from '@vara-eth/api';
-
-async function main() {
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
-  await ethereumClient.isInitialized;
-
-  // Connect to Vara.eth network via WebSocket
-  const api = new VaraEthApi(new WsVaraEthProvider(VARA_ETH_WS), ethereumClient);
-
-  // Encode the call
-  const payload = sails.services.OneOfUs.functions.JoinUs.encodePayload();
-
-  // Build an injected tx (off-chain pre-confirmation path)
-  const injected = await api.createInjectedTransaction({
-    destination: PROGRAM_ID,
-    payload: payload,
-    value: 0n,
-  });
-
-  // Wait for full transaction promise (includes reply)
-  const result = await injected.sendAndWaitForPromise();
-  // Result contains 'Accept' or 'Reject' status with reply payload
-}
-```
+🔗 [View script: test-injected.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/test-injected.ts) | [Full @vara-eth/api documentation](https://github.com/gear-tech/gear-js/tree/main/apis/vara-eth)
 
 ## Read State
 
@@ -426,39 +288,7 @@ Run the script to read state:
 npm run state
 ```
 
-🔗 [View full script: read-state.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/read-state.ts)
-
-```typescript
-import { EthereumClient, VaraEthApi, WsVaraEthProvider, getMirrorClient } from '@vara-eth/api';
-
-async function main() {
-  const ethereumClient = new EthereumClient(publicClient, walletClient, ROUTER_ADDRESS);
-  await ethereumClient.isInitialized;
-  const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
-
-  // Connect to Vara.eth API
-  const api = new VaraEthApi(new WsVaraEthProvider(VARA_ETH_WS), ethereumClient);
-
-  // Get the current state hash from Ethereum (Mirror contract)
-  const stateHash = await mirror.stateHash();
-
-  // Query: How many builders joined?
-  const countPayload = sails.services.OneOfUs.queries.Count.encodePayload();
-
-  const countReply = await api.call.program.calculateReplyForHandle(account.address, PROGRAM_ID, countPayload);
-
-  const count = sails.services.OneOfUs.queries.Count.decodeResult(countReply.payload);
-  console.log('Builders count:', count);
-
-  // Query: Who are the builders? (paginated)
-  const buildersPayload = sails.services.OneOfUs.queries.List.encodePayload(0, 100); // page 0, 100 items
-
-  const buildersReply = await api.call.program.calculateReplyForHandle(account.address, PROGRAM_ID, buildersPayload);
-
-  const builders = sails.services.OneOfUs.queries.List.decodeResult(buildersReply.payload);
-  console.log('Builders list:', builders);
-}
-```
+🔗 [View script: read-state.ts](https://github.com/gear-foundation/one-of-us/blob/master/deploy/read-state.ts)
 
 #### Understanding State Types
 
@@ -468,17 +298,18 @@ async function main() {
 
 ## Complete Flow
 
-| Step | Action | Command / Result |
+| Step | Action | Command |
 | --- | --- | --- |
 | **1** | Get program files | Download from [`sources/`](https://github.com/gear-foundation/one-of-us/tree/master/sources) |
-| **2** | Upload WASM via CLI | `ethexe upload one_of_us.opt.wasm` → Get `CODE_ID` |
-| **3a** | Create program (Standard) | `router.createProgram(CODE_ID)` → Get `PROGRAM_ID` |
-| **3b** | Create program (With ABI via Foundry) | `npm run create:abi` → Get `PROGRAM_ID` + `ABI_ADDRESS` |
-| **3c** | Link on Etherscan | Code → More Options → "Is this a proxy?" → Verify |
-| **4** | Fund the program | `wvara.approve()` + `mirror.executableBalanceTopUp()` |
-| **5a** | Interact (Classic) | `mirror.sendMessage()` — Full L1 finality |
-| **5b** | Interact (Injected) | `api.createInjectedTransaction()` — Instant pre-confirmation |
-| **6** | Read state | `api.call.program.calculateReplyForHandle()` |
+| **2** | Upload WASM via CLI | `ethexe upload one_of_us.opt.wasm` → Add `CODE_ID` to `.env` |
+| **3** | Clone repo & setup | `git clone ...` → `cp .env.example .env` → `npm install` → `cd deploy` |
+| **4a** | Create program (Standard) | `npm run create` → Add `PROGRAM_ID` to `.env` |
+| **4b** | Create program (With ABI) | `npm run create:abi` → Add `PROGRAM_ID` to `.env` |
+| **4c** | Link on Etherscan | Code → More Options → "Is this a proxy?" → Verify |
+| **5** | Fund the program | `npm run fund` |
+| **6a** | Interact (Classic) | `npm run init` then `npm run classic` |
+| **6b** | Interact (Injected) | `npm run injected` |
+| **7** | Read state | `npm run state` |
 
 ### Summary
 
@@ -492,6 +323,67 @@ async function main() {
 - ✅ Read program state from Vara.eth
 
 The key takeaway: Vara.eth gives you **Ethereum's security and liquidity** with **parallel WASM execution and Web2-like speed**. Your users interact through MetaMask like any other Ethereum app, but under the hood, they're getting instant feedback from a high-performance compute layer.
+
+---
+
+## Advanced: Running Locally (Development Mode)
+
+For those who want to run Vara.eth locally for development and debugging:
+
+### 1. Clone the Gear Repository
+
+```bash
+git clone https://github.com/gear-tech/gear.git
+cd gear
+```
+
+### 2. Prerequisites
+
+Complete the prerequisites from [Getting started in 5 minutes](https://wiki.vara.network/docs/getting-started-in-5-minutes#prerequisites).
+
+### 3. Build Solidity Contracts
+
+The build expects Solidity ABI artifacts. Install Foundry first:
+
+```bash
+# macOS
+brew install foundry
+
+# or follow Foundry install docs for Linux
+```
+
+Build the contracts:
+
+```bash
+cd ethexe/contracts
+forge install
+forge build
+cd ../..
+```
+
+### 4. Build Vara.eth CLI
+
+```bash
+cargo build -p ethexe-cli --release
+```
+
+### 5. Run Local Node
+
+```bash
+./target/release/ethexe run --dev --block-time 6 --rpc-port 9944
+```
+
+### Available Endpoints
+
+Once running, the following endpoints become available:
+
+| Endpoint            | Address                                      | Description                              |
+| ------------------- | -------------------------------------------- | ---------------------------------------- |
+| **Ethexe RPC**      | `http://127.0.0.1:9944`                      | Main RPC endpoint for ethexe interaction |
+| **Ethereum RPC**    | `ws://127.0.0.1:8545`                        | Ethereum-compatible RPC (Anvil)          |
+| **Router Contract** | `0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9` | On-chain routing contract                |
+
+> ⚠️ **Note:** In `--dev` mode, a local Ethereum environment is expected. If Anvil is not already running, start it separately with `anvil` on port 8545.
 
 ---
 

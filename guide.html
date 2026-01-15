@@ -239,7 +239,7 @@
         border-radius: 6px;
         font-family: 'JetBrains Mono', monospace;
         font-size: 12px;
-        margin: 8px 0;
+        margin: 8px 4px 8px 0;
         color: var(--text-secondary);
         transition: all 0.2s;
       }
@@ -421,6 +421,26 @@
         background-clip: text;
       }
 
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      th {
+        background: var(--bg-secondary);
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
       @media (max-width: 640px) {
         body {
           padding: 40px 20px 60px;
@@ -452,21 +472,24 @@
       <h2>Introduction</h2>
       <p>
         In this guide, we'll dive into the process of deploying and running actual WASM programs on Ethereum through
-        Vara.eth. The idea is straightforward: take a WASM program and execute it
-        in a high-performance parallel environment — while keeping Ethereum as the settlement and security layer. No
-        Layer 2, no new chains, no liquidity fragmentation, and no extra trust assumptions. Just Ethereum's security
-        model and liquidity, with a compute layer that finally lets your app breathe.
+        Vara.eth. The idea is straightforward: take a WASM program and execute it in a high-performance parallel
+        environment — while keeping Ethereum as the settlement and security layer. No Layer 2, no new chains, no
+        liquidity fragmentation, and no extra trust assumptions. Just Ethereum's security model and liquidity, with a
+        compute layer that finally lets your app breathe.
       </p>
       <div class="callout callout-info">
+        <div class="callout-title">💡 Pre-confirmations</div>
         <p>
-            Vara.eth also brings a new execution feel to L1 apps: alongside canonical Ethereum finality, programs can return
-            <strong>pre-confirmations</strong> — fast, cryptographically backed acknowledgements from executors that arrive
-            in near real time. That means your users can experience Web2-like responsiveness while still ending up with
-            Ethereum-level settlement security (which opens up a whole new space of application designs that simply weren't
-            practical on sequential L1 execution).
-          </p>
+          Vara.eth also brings a new execution feel to L1 apps: alongside canonical Ethereum finality, programs can
+          return
+          <strong>pre-confirmations</strong> — fast, cryptographically backed acknowledgements from executors that
+          arrive in near real time. That means your users can experience Web2-like responsiveness while still ending up
+          with Ethereum-level settlement security (which opens up a whole new space of application designs that simply
+          weren't practical on sequential L1 execution).
+        </p>
       </div>
 
+      <p>
         This guide is for developers who want to build Ethereum-native applications but need more than sequential
         smart-contract execution can realistically offer. We'll stay practical from the first step. You'll take a real
         Gear program, upload and validate its WASM on Ethereum, create a program instance, and then interact with it
@@ -478,8 +501,6 @@
         By the end, you'll have a running Vara.eth program anchored to Ethereum, a clear mental model of how execution
         and finalization work, and a template you can reuse to ship your own high-performance apps without leaving L1.
       </p>
-
-      
 
       <h3>Resources</h3>
       <div class="resources-grid">
@@ -542,27 +563,43 @@
         </thead>
         <tbody>
           <tr>
-            <td><a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.opt.wasm" target="_blank"><code>one_of_us.opt.wasm</code></a></td>
+            <td>
+              <a
+                href="https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.opt.wasm"
+                target="_blank"
+                ><code>one_of_us.opt.wasm</code></a
+              >
+            </td>
             <td>Optimized WASM program ready for upload</td>
           </tr>
           <tr>
-            <td><a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.idl" target="_blank"><code>one_of_us.idl</code></a></td>
+            <td>
+              <a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/one_of_us.idl" target="_blank"
+                ><code>one_of_us.idl</code></a
+              >
+            </td>
             <td>IDL interface for sails-js interaction</td>
           </tr>
           <tr>
-            <td><a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/OneOfUs.sol" target="_blank"><code>OneOfUs.sol</code></a></td>
+            <td>
+              <a href="https://github.com/gear-foundation/one-of-us/raw/master/sources/OneOfUs.sol" target="_blank"
+                ><code>OneOfUs.sol</code></a
+              >
+            </td>
             <td>Solidity ABI interface (optional)</td>
           </tr>
         </tbody>
       </table>
 
       <div class="callout callout-info">
-        <div class="callout-title">Want to build from source?</div>
+        <div class="callout-title">💡 Want to build from source?</div>
         <p>
-          If you prefer to build the program yourself, check out the 
-          <a href="https://github.com/gear-foundation/one-of-us" target="_blank">full source code</a>. 
-          Make sure your environment matches the standard Gear/Vara prerequisites — see 
-          <a href="https://wiki.vara.network/docs/getting-started-in-5-minutes" target="_blank">Getting started in 5 minutes</a>.
+          If you prefer to build the program yourself, check out the
+          <a href="https://github.com/gear-foundation/one-of-us" target="_blank">full source code</a>. Make sure your
+          environment matches the standard Gear/Vara prerequisites — see
+          <a href="https://wiki.vara.network/docs/getting-started-in-5-minutes" target="_blank"
+            >Getting started in 5 minutes</a
+          >.
         </p>
         <pre data-lang="bash"><code>cargo build --release</code></pre>
         <p>Your optimized WASM will be in <code>target/wasm32-gear/release/one_of_us.opt.wasm</code></p>
@@ -574,9 +611,8 @@
       <h2>Uploading Program Code</h2>
 
       <p>
-        Now that you have the WASM file, the next step is to get it onto Ethereum. It needs to be
-        uploaded and validated through the vara-eth CLI. Think of this as the Ethereum-side "registration" of your WASM
-        code.
+        Now that you have the WASM file, the next step is to get it onto Ethereum. It needs to be uploaded and validated
+        through the vara-eth CLI. Think of this as the Ethereum-side "registration" of your WASM code.
       </p>
 
       <h3>Getting the CLI</h3>
@@ -597,12 +633,12 @@ cargo build -p ethexe-cli -r</code></pre>
       <h3>Upload the WASM</h3>
       <pre data-lang="bash"><code>./target/release/ethexe --cfg none tx \
   --ethereum-rpc <span class="string">"wss://hoodi-reth-rpc.gear-tech.io/ws"</span> \
-  --ethereum-router <span class="string">"0x579D6098197517140e5aec47c78d6f7181916dd6"</span> \
+  --ethereum-router <span class="string">"0xBC888a8B050B9B76a985d91c815d2c4f2131a58A"</span> \
   --sender <span class="string">"$SENDER_ADDRESS"</span> \
   upload sources/one_of_us.opt.wasm -w</code></pre>
 
       <div class="callout callout-warning">
-        <div class="callout-title">⚠ Get Test ETH</div>
+        <div class="callout-title">⚠️ Get Test ETH</div>
         <p>
           Don't forget to get some test ETH on Hoodi to cover gas before you upload — use
           <a href="https://www.hoodifaucet.io/" target="_blank">hoodifaucet.io</a>
@@ -620,10 +656,55 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
     <section id="creation">
       <h2>Program Creation</h2>
 
+      <p>Clone the repository and set up your environment:</p>
+
+      <pre data-lang="bash"><code>git clone https://github.com/gear-foundation/one-of-us.git
+cd one-of-us</code></pre>
+
+      <p>Copy the environment template and configure it:</p>
+
+      <pre data-lang="bash"><code>cp .env.example .env</code></pre>
+
+      <p>Open <code>.env</code> and fill in the required values:</p>
+
+      <pre data-lang="env"><code><span class="comment"># Pre-configured for Hoodi testnet</span>
+ROUTER_ADDRESS=<span class="string">0xBC888a8B050B9B76a985d91c815d2c4f2131a58A</span>
+WVARA_ADDRESS=<span class="string">0x2C960bd5347C2Eb4d9bBEA0CB9671C5b641Dcbb9</span>
+
+<span class="comment"># RPC endpoints (Hoodi)</span>
+ETH_RPC=<span class="string">https://hoodi-reth-rpc.gear-tech.io</span>
+ETH_RPC_WS=<span class="string">wss://hoodi-reth-rpc.gear-tech.io/ws</span>
+VARA_ETH_WS=<span class="string">ws://vara-eth-validator-1.gear-tech.io:9944</span>
+
+<span class="comment"># Your credentials</span>
+PRIVATE_KEY=<span class="string">0x...</span>           <span class="comment"># Your Ethereum private key</span>
+
+<span class="comment"># Add after upload step</span>
+CODE_ID=<span class="string">0x...</span>               <span class="comment"># Your validated code hash from upload</span>
+
+<span class="comment"># Add after create step</span>
+PROGRAM_ID=<span class="string">0x...</span>            <span class="comment"># Your program Mirror address</span></code></pre>
+
+      <p>Install dependencies and navigate to the deploy folder:</p>
+
+      <pre data-lang="bash"><code>npm install
+cd deploy</code></pre>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">⚠️ Important</div>
+        <p>All scripts below are run from the <code>deploy/</code> directory.</p>
+      </div>
+
       <p>
         Uploading gives you a validated <code>codeId</code>, but there's still no running program yet. Program creation
         is the moment your WASM turns into an actual instance anchored on L1.
       </p>
+
+      <p>Add your <code>CODE_ID</code> from the upload step to <code>.env</code>, then create the program:</p>
+
+      <pre data-lang="bash"><code>npm run create</code></pre>
+
+      <p>After successful creation, add the returned <code>PROGRAM_ID</code> to your <code>.env</code> file.</p>
 
       <p>
         Once you create it, Ethereum deploys a dedicated <strong>Mirror contract</strong> for your program. That Mirror
@@ -641,106 +722,42 @@ Code ID: <span class="string">0x59810e0b451a041adff0fe2e551430186c664e2a97c80a80
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: create-program.ts
+        View script: create-program.ts
       </a>
-
-      <pre
-        data-lang="typescript"
-      ><code><span class="keyword">import</span> { createPublicClient, createWalletClient, http, defineChain } <span class="keyword">from</span> <span class="string">'viem'</span>;
-<span class="keyword">import</span> { privateKeyToAccount } <span class="keyword">from</span> <span class="string">'viem/accounts'</span>;
-<span class="keyword">import</span> { EthereumClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-
-<span class="keyword">const</span> hoodi = <span class="function">defineChain</span>({
-  <span class="property">id</span>: <span class="number">560048</span>,
-  <span class="property">name</span>: <span class="string">'Hoodi Testnet'</span>,
-  <span class="property">network</span>: <span class="string">'hoodi'</span>,
-  <span class="property">nativeCurrency</span>: { <span class="property">decimals</span>: <span class="number">18</span>, <span class="property">name</span>: <span class="string">'Ether'</span>, <span class="property">symbol</span>: <span class="string">'ETH'</span> },
-  <span class="property">rpcUrls</span>: { <span class="property">default</span>: { <span class="property">http</span>: [ETH_RPC] } },
-  <span class="property">testnet</span>: <span class="keyword">true</span>,
-});
-
-<span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="keyword">const</span> account = <span class="function">privateKeyToAccount</span>(PRIVATE_KEY);
-  
-  <span class="keyword">const</span> publicClient = <span class="function">createPublicClient</span>({ <span class="property">chain</span>: hoodi, <span class="property">transport</span>: <span class="function">http</span>(ETH_RPC) });
-  <span class="keyword">const</span> walletClient = <span class="function">createWalletClient</span>({ account, <span class="property">chain</span>: hoodi, <span class="property">transport</span>: <span class="function">http</span>(ETH_RPC) });
-
-  <span class="comment">// Setup Vara.eth client</span>
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-  <span class="keyword">const</span> router = ethereumClient.router;
-
-  <span class="comment">// Create program instance</span>
-  <span class="keyword">const</span> tx = <span class="keyword">await</span> router.<span class="function">createProgram</span>(CODE_ID);
-  <span class="keyword">const</span> receipt = <span class="keyword">await</span> tx.<span class="function">sendAndWaitForReceipt</span>();
-
-  <span class="comment">// Get the program ID (Mirror address)</span>
-  <span class="keyword">const</span> programId = <span class="keyword">await</span> tx.<span class="function">getProgramId</span>();
-  console.<span class="function">log</span>(<span class="string">'Program ID:'</span>, programId);
-}</code></pre>
 
       <h3>Option 2: Create Program with Solidity ABI Interface (Foundry)</h3>
 
       <p>
         If you want to interact with your Vara.eth program using a familiar Solidity ABI (for example, from other smart
-        contracts or Ethereum tooling), you can create the program with an ABI interface. We use <strong>Foundry</strong> 
-        for deploying and verifying the ABI contract — it handles compilation, deployment, and Etherscan verification in one step.
+        contracts or Ethereum tooling), you can create the program with an ABI interface. We use
+        <strong>Foundry</strong>
+        for deploying and verifying the ABI contract — it handles compilation, deployment, and Etherscan verification in
+        one step.
       </p>
 
       <p>
-        The pre-built <code>OneOfUs.sol</code> is already included in the 
-        <a href="https://github.com/gear-foundation/one-of-us/tree/master/sources" target="_blank"><code>sources/</code></a> folder.
+        The pre-built <code>OneOfUs.sol</code> is already included in the
+        <a href="https://github.com/gear-foundation/one-of-us/tree/master/sources" target="_blank"
+          ><code>sources/</code></a
+        >
+        folder.
       </p>
 
       <h4>Install Foundry</h4>
       <pre data-lang="bash"><code><span class="comment"># Install Foundry</span>
 curl -L https://foundry.paradigm.xyz | bash
-foundryup
+foundryup</code></pre>
 
-<span class="comment"># Install dependencies (from project root)</span>
-forge install</code></pre>
+      <p>Install Foundry dependencies (run from project root, not <code>deploy/</code>):</p>
 
-      <h4>Foundry Deploy Script</h4>
-      <p>Create a deploy script at <code>deploy/DeployOneOfUsAbi.s.sol</code>:</p>
-
-      <a
-        href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/DeployOneOfUsAbi.s.sol"
-        target="_blank"
-        class="script-link"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-          />
-        </svg>
-        View full script: DeployOneOfUsAbi.s.sol
-      </a>
-
-      <pre data-lang="solidity"><code><span class="comment">// SPDX-License-Identifier: UNLICENSED</span>
-<span class="keyword">pragma solidity</span> ^0.8.28;
-
-<span class="keyword">import</span> {Script, console} <span class="keyword">from</span> <span class="string">"forge-std/Script.sol"</span>;
-<span class="keyword">import</span> {OneOfUsAbi} <span class="keyword">from</span> <span class="string">"../OneOfUs.sol"</span>;
-
-<span class="keyword">contract</span> <span class="type">DeployOneOfUsAbi</span> <span class="keyword">is</span> Script {
-    <span class="keyword">function</span> <span class="function">run</span>() <span class="keyword">external returns</span> (<span class="type">address</span>) {
-        <span class="type">bytes32</span> pkBytes = vm.<span class="function">envBytes32</span>(<span class="string">"PRIVATE_KEY"</span>);
-        <span class="type">uint256</span> deployerPrivateKey = <span class="type">uint256</span>(pkBytes);
-        
-        vm.<span class="function">startBroadcast</span>(deployerPrivateKey);
-
-        <span class="type">OneOfUsAbi</span> abiContract = <span class="keyword">new</span> <span class="type">OneOfUsAbi</span>();
-        console.<span class="function">log</span>(<span class="string">"OneOfUsAbi deployed at:"</span>, <span class="keyword">address</span>(abiContract));
-
-        vm.<span class="function">stopBroadcast</span>();
-        <span class="keyword">return address</span>(abiContract);
-    }
-}</code></pre>
+      <pre data-lang="bash"><code>cd ..
+forge install
+cd deploy</code></pre>
 
       <h4>Deploy and Create Program</h4>
-      <p>
-        The TypeScript script handles both deployment via Foundry and program creation:
-      </p>
+      <p>Run the script to create the program with the ABI:</p>
+
+      <pre data-lang="bash"><code>npm run create:abi</code></pre>
 
       <a
         href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/create-program-abi.ts"
@@ -752,70 +769,41 @@ forge install</code></pre>
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: create-program-abi.ts
+        View script: create-program-abi.ts
       </a>
-
-      <pre
-        data-lang="typescript"
-      ><code><span class="keyword">import</span> { execSync } <span class="keyword">from</span> <span class="string">'child_process'</span>;
-<span class="keyword">import</span> { EthereumClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-
-<span class="keyword">function</span> <span class="function">deployWithForge</span>(): <span class="type">string</span> {
-  <span class="keyword">const</span> etherscanKey = process.env.ETHERSCAN_API_KEY;
-  <span class="keyword">const</span> verifyFlag = etherscanKey
-    ? <span class="string">`--verify --etherscan-api-key ${etherscanKey}`</span>
-    : <span class="string">''</span>;
-
-  <span class="keyword">const</span> output = <span class="function">execSync</span>(
-    <span class="string">`forge script deploy/DeployOneOfUsAbi.s.sol:DeployOneOfUsAbi \
-      --rpc-url ${ETH_RPC} \
-      --broadcast ${verifyFlag} -vvv`</span>,
-    { <span class="property">cwd</span>: projectRoot, <span class="property">encoding</span>: <span class="string">'utf-8'</span> }
-  );
-
-  <span class="comment">// Parse deployed address from output</span>
-  <span class="keyword">const</span> match = output.<span class="function">match</span>(<span class="string">/deployed at:\s*(0x[a-fA-F0-9]{40})/i</span>);
-  <span class="keyword">return</span> match[<span class="number">1</span>];
-}
-
-<span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="comment">// Step 1: Deploy ABI contract with Foundry</span>
-  <span class="keyword">const</span> abiAddress = <span class="function">deployWithForge</span>();
-  console.<span class="function">log</span>(<span class="string">'ABI Contract deployed:'</span>, abiAddress);
-
-  <span class="comment">// Step 2: Create program with ABI interface</span>
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-
-  <span class="keyword">const</span> tx = <span class="keyword">await</span> ethereumClient.router.<span class="function">createProgramWithAbiInterface</span>(
-    CODE_ID,
-    abiAddress
-  );
-  <span class="keyword">const</span> receipt = <span class="keyword">await</span> tx.<span class="function">sendAndWaitForReceipt</span>();
-  <span class="keyword">const</span> programId = <span class="keyword">await</span> tx.<span class="function">getProgramId</span>();
-
-  console.<span class="function">log</span>(<span class="string">'Program ID:'</span>, programId);
-}</code></pre>
+      <a
+        href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/DeployOneOfUsAbi.s.sol"
+        target="_blank"
+        class="script-link"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+          />
+        </svg>
+        View Foundry script: DeployOneOfUsAbi.s.sol
+      </a>
 
       <h4>Link Mirror as Proxy on Etherscan</h4>
 
       <p>
-        After deployment, you need to link the Mirror contract (your <code>PROGRAM_ID</code>) to the ABI contract on Etherscan.
-        This enables the familiar Read/Write Contract interface on your Mirror.
+        After deployment, you need to link the Mirror contract (your <code>PROGRAM_ID</code>) to the ABI contract on
+        Etherscan. This enables the familiar Read/Write Contract interface on your Mirror.
       </p>
 
       <div class="callout callout-info">
         <div class="callout-title">🔗 How to link</div>
         <p>
-          1. Go to your <code>PROGRAM_ID</code> (Mirror address) on <a href="https://hoodi.etherscan.io" target="_blank">Hoodi Etherscan</a><br />
+          1. Go to your <code>PROGRAM_ID</code> (Mirror address) on
+          <a href="https://hoodi.etherscan.io" target="_blank">Hoodi Etherscan</a><br />
           2. Click the <strong>"Code"</strong> tab<br />
           3. Click <strong>"More Options"</strong> → <strong>"Is this a proxy?"</strong><br />
           4. Click <strong>"Verify"</strong> — Etherscan will auto-detect the ABI contract<br />
           5. Confirm the linking
         </p>
         <p style="margin-top: 8px">
-          Once linked, the Mirror page will show all ABI methods in Read/Write Contract tabs, 
-          making interaction much easier through Etherscan UI.
+          Once linked, the Mirror page will show all ABI methods in Read/Write Contract tabs, making interaction much
+          easier through Etherscan UI.
         </p>
       </div>
     </section>
@@ -847,6 +835,10 @@ forge install</code></pre>
         Get your wVARA
       </a>
 
+      <p>Run the script to top up the program balance:</p>
+
+      <pre data-lang="bash"><code>npm run fund</code></pre>
+
       <a
         href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/fund-program.ts"
         target="_blank"
@@ -857,29 +849,8 @@ forge install</code></pre>
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: fund-program.ts
+        View script: fund-program.ts
       </a>
-
-      <pre
-        data-lang="typescript"
-      ><code><span class="keyword">import</span> { EthereumClient, getMirrorClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-
-<span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-  <span class="keyword">const</span> wvara = ethereumClient.wvara;
-  <span class="keyword">const</span> mirror = <span class="function">getMirrorClient</span>(PROGRAM_ID, walletClient, publicClient);
-
-  <span class="keyword">const</span> amount = <span class="function">BigInt</span>(<span class="number">10_000_000_000_000</span>); <span class="comment">// 10 wVARA</span>
-
-  <span class="comment">// Step 1: Approve wVARA for the program to spend</span>
-  <span class="keyword">const</span> approveTx = <span class="keyword">await</span> wvara.<span class="function">approve</span>(PROGRAM_ID, amount);
-  <span class="keyword">await</span> approveTx.<span class="function">sendAndWaitForReceipt</span>();
-
-  <span class="comment">// Step 2: Top up executable balance via Mirror</span>
-  <span class="keyword">const</span> topUpTx = <span class="keyword">await</span> mirror.<span class="function">executableBalanceTopUp</span>(amount);
-  <span class="keyword">await</span> topUpTx.<span class="function">sendAndWaitForReceipt</span>();
-}</code></pre>
     </section>
 
     <!-- Interaction -->
@@ -911,12 +882,20 @@ forge install</code></pre>
       <div class="callout callout-info">
         <div class="callout-title">💡 Quick Testing via Etherscan</div>
         <p>
-          If your program's Mirror contract is verified with ABI (see "Link Mirror as Proxy" above), you can interact 
-          with it directly through Etherscan. Go to the Mirror address on Hoodi Etherscan, open the 
-          <strong>Write Contract</strong> tab, connect your wallet, and call <code>sendMessage</code> with your 
-          encoded payload. Great for quick tests without writing code.
+          If your program's Mirror contract is verified with ABI (see "Link Mirror as Proxy" above), you can interact
+          with it directly through Etherscan. Go to the Mirror address on Hoodi Etherscan, open the
+          <strong>Write Contract</strong> tab, connect your wallet, and call <code>sendMessage</code> with your encoded
+          payload. Great for quick tests without writing code.
         </p>
       </div>
+
+      <p>First, initialize the program:</p>
+
+      <pre data-lang="bash"><code>npm run init</code></pre>
+
+      <p>Then send a message to the program:</p>
+
+      <pre data-lang="bash"><code>npm run classic</code></pre>
 
       <a
         href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/classic-tx.ts"
@@ -928,39 +907,8 @@ forge install</code></pre>
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: classic-tx.ts
+        View script: classic-tx.ts
       </a>
-
-      <pre
-        data-lang="typescript"
-      ><code><span class="keyword">import</span> { EthereumClient, getMirrorClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-<span class="keyword">import</span> { Sails } <span class="keyword">from</span> <span class="string">'sails-js'</span>;
-<span class="keyword">import</span> { SailsIdlParser } <span class="keyword">from</span> <span class="string">'sails-js-parser'</span>;
-
-<span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-  <span class="keyword">const</span> mirror = <span class="function">getMirrorClient</span>(PROGRAM_ID, walletClient, publicClient);
-
-  <span class="comment">// Initialize Sails from your program IDL</span>
-  <span class="keyword">const</span> parser = <span class="keyword">await</span> SailsIdlParser.<span class="function">new</span>();
-  <span class="keyword">const</span> sails = <span class="keyword">new</span> <span class="type">Sails</span>(parser);
-  sails.<span class="function">parseIdl</span>(<span class="function">readFileSync</span>(<span class="string">'./one_of_us.idl'</span>, <span class="string">'utf-8'</span>));
-
-  <span class="comment">// Encode a regular call using ABI/IDL</span>
-  <span class="keyword">const</span> payload = sails.services.OneOfUs.functions.JoinUs.<span class="function">encodePayload</span>();
-
-  <span class="comment">// Send through Ethereum to Mirror</span>
-  <span class="keyword">const</span> tx = <span class="keyword">await</span> mirror.<span class="function">sendMessage</span>(payload, <span class="number">0n</span>);
-  <span class="keyword">const</span> receipt = <span class="keyword">await</span> tx.<span class="function">sendAndWaitForReceipt</span>();
-
-  <span class="comment">// Wait for the program reply</span>
-  <span class="keyword">const</span> { waitForReply } = <span class="keyword">await</span> tx.<span class="function">setupReplyListener</span>();
-  <span class="keyword">const</span> { <span class="property">payload</span>: replyPayload } = <span class="keyword">await</span> waitForReply;
-
-  <span class="comment">// Decode result</span>
-  <span class="keyword">const</span> result = sails.services.OneOfUs.functions.JoinUs.<span class="function">decodeResult</span>(replyPayload);
-}</code></pre>
 
       <h3>Pre-confirmed Transaction (Injected)</h3>
 
@@ -976,13 +924,17 @@ forge install</code></pre>
       </p>
 
       <div class="callout callout-success">
-        <div class="callout-title">✓ Zero Gas for Users</div>
+        <div class="callout-title">✅ Zero Gas for Users</div>
         <p>
           Your users don't even have to pay for this interaction. Execution is funded from the program's internal wVARA
           balance — not from the user's pocket. The user just signs in MetaMask, gets an instant pre-confirmation, and
           moves on.
         </p>
       </div>
+
+      <p>Run the script to send an injected transaction:</p>
+
+      <pre data-lang="bash"><code>npm run injected</code></pre>
 
       <a
         href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/test-injected.ts"
@@ -994,9 +946,8 @@ forge install</code></pre>
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: test-injected.ts
+        View script: test-injected.ts
       </a>
-
       <a href="https://github.com/gear-tech/gear-js/tree/main/apis/vara-eth" target="_blank" class="script-link">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path
@@ -1005,35 +956,6 @@ forge install</code></pre>
         </svg>
         Full @vara-eth/api documentation
       </a>
-
-      <pre
-        data-lang="typescript"
-      ><code><span class="keyword">import</span> { EthereumClient, VaraEthApi, WsVaraEthProvider } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-
-<span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-
-  <span class="comment">// Connect to Vara.eth network via WebSocket</span>
-  <span class="keyword">const</span> api = <span class="keyword">new</span> <span class="type">VaraEthApi</span>(
-    <span class="keyword">new</span> <span class="type">WsVaraEthProvider</span>(VARA_ETH_WS),
-    ethereumClient
-  );
-
-  <span class="comment">// Encode the call</span>
-  <span class="keyword">const</span> payload = sails.services.OneOfUs.functions.JoinUs.<span class="function">encodePayload</span>();
-
-  <span class="comment">// Build an injected tx (off-chain pre-confirmation path)</span>
-  <span class="keyword">const</span> injected = <span class="keyword">await</span> api.<span class="function">createInjectedTransaction</span>({
-    <span class="property">destination</span>: PROGRAM_ID,
-    <span class="property">payload</span>: payload,
-    <span class="property">value</span>: <span class="number">0n</span>,
-  });
-
-  <span class="comment">// Wait for full transaction promise (includes reply)</span>
-  <span class="keyword">const</span> result = <span class="keyword">await</span> injected.<span class="function">sendAndWaitForPromise</span>();
-  <span class="comment">// Result contains 'Accept' or 'Reject' status with reply payload</span>
-}</code></pre>
     </section>
 
     <!-- Read State -->
@@ -1070,6 +992,10 @@ forge install</code></pre>
         </p>
       </div>
 
+      <p>Run the script to read state:</p>
+
+      <pre data-lang="bash"><code>npm run state</code></pre>
+
       <a
         href="https://github.com/gear-foundation/one-of-us/blob/master/deploy/read-state.ts"
         target="_blank"
@@ -1080,51 +1006,8 @@ forge install</code></pre>
             d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
           />
         </svg>
-        View full script: read-state.ts
+        View script: read-state.ts
       </a>
-
-      <pre
-        data-lang="typescript"
-      ><code><span class="keyword">import</span> { EthereumClient, VaraEthApi, WsVaraEthProvider, getMirrorClient } <span class="keyword">from</span> <span class="string">'@vara-eth/api'</span>;
-
-<span class="keyword">async function</span> <span class="function">main</span>() {
-  <span class="keyword">const</span> ethereumClient = <span class="keyword">new</span> <span class="type">EthereumClient</span>(publicClient, walletClient, ROUTER_ADDRESS);
-  <span class="keyword">await</span> ethereumClient.isInitialized;
-  <span class="keyword">const</span> mirror = <span class="function">getMirrorClient</span>(PROGRAM_ID, walletClient, publicClient);
-
-  <span class="comment">// Connect to Vara.eth API</span>
-  <span class="keyword">const</span> api = <span class="keyword">new</span> <span class="type">VaraEthApi</span>(
-    <span class="keyword">new</span> <span class="type">WsVaraEthProvider</span>(VARA_ETH_WS),
-    ethereumClient
-  );
-
-  <span class="comment">// Get the current state hash from Ethereum (Mirror contract)</span>
-  <span class="keyword">const</span> stateHash = <span class="keyword">await</span> mirror.<span class="function">stateHash</span>();
-
-  <span class="comment">// Query: How many builders joined?</span>
-  <span class="keyword">const</span> countPayload = sails.services.OneOfUs.queries.Count.<span class="function">encodePayload</span>();
-  
-  <span class="keyword">const</span> countReply = <span class="keyword">await</span> api.call.program.<span class="function">calculateReplyForHandle</span>(
-    account.address,
-    PROGRAM_ID,
-    countPayload
-  );
-
-  <span class="keyword">const</span> count = sails.services.OneOfUs.queries.Count.<span class="function">decodeResult</span>(countReply.payload);
-  console.<span class="function">log</span>(<span class="string">'Builders count:'</span>, count);
-
-  <span class="comment">// Query: Who are the builders? (paginated)</span>
-  <span class="keyword">const</span> buildersPayload = sails.services.OneOfUs.queries.List.<span class="function">encodePayload</span>(<span class="number">0</span>, <span class="number">100</span>); <span class="comment">// page 0, 100 items</span>
-  
-  <span class="keyword">const</span> buildersReply = <span class="keyword">await</span> api.call.program.<span class="function">calculateReplyForHandle</span>(
-    account.address,
-    PROGRAM_ID,
-    buildersPayload
-  );
-
-  <span class="keyword">const</span> builders = sails.services.OneOfUs.queries.List.<span class="function">decodeResult</span>(buildersReply.payload);
-  console.<span class="function">log</span>(<span class="string">'Builders list:'</span>, builders);
-}</code></pre>
 
       <h4>Understanding State Types</h4>
       <p>
@@ -1147,55 +1030,68 @@ forge install</code></pre>
           <div class="flow-num">1</div>
           <div class="flow-content">
             <h4>Get program files</h4>
-            <p>Download from <a href="https://github.com/gear-foundation/one-of-us/tree/master/sources" target="_blank"><code>sources/</code></a></p>
+            <p>
+              Download from
+              <a href="https://github.com/gear-foundation/one-of-us/tree/master/sources" target="_blank"
+                ><code>sources/</code></a
+              >
+            </p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">2</div>
           <div class="flow-content">
             <h4>Upload WASM via CLI</h4>
-            <p><code>ethexe upload one_of_us.opt.wasm</code> → Get <code>CODE_ID</code></p>
+            <p><code>ethexe upload one_of_us.opt.wasm</code> → Add <code>CODE_ID</code> to <code>.env</code></p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">3</div>
           <div class="flow-content">
-            <h4>Create program instance</h4>
+            <h4>Clone repo & setup</h4>
             <p>
-              <strong>Option A (Standard):</strong><br />
-              <code>router.createProgram(CODE_ID)</code> → Get <code>PROGRAM_ID</code> (Mirror address)
-            </p>
-            <p style="margin-top: 8px">
-              <strong>Option B (With ABI via Foundry):</strong><br />
-              Use pre-built <code>OneOfUs.sol</code> from <code>sources/</code><br />
-              Deploy &amp; create: <code>npm run create:abi</code> (uses <code>forge script</code> + TypeScript)<br />
-              Link on Etherscan: More Options → "Is this a proxy?" → Verify
+              <code>git clone ...</code> → <code>cp .env.example .env</code> → <code>npm install</code> →
+              <code>cd deploy</code>
             </p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">4</div>
           <div class="flow-content">
-            <h4>Fund the program</h4>
-            <p><code>wvara.approve()</code> + <code>mirror.executableBalanceTopUp()</code></p>
+            <h4>Create program instance</h4>
+            <p>
+              <strong>Option A (Standard):</strong> <code>npm run create</code> → Add <code>PROGRAM_ID</code> to
+              <code>.env</code>
+            </p>
+            <p style="margin-top: 8px">
+              <strong>Option B (With ABI):</strong> <code>npm run create:abi</code> → Add <code>PROGRAM_ID</code> to
+              <code>.env</code><br />
+              Link on Etherscan: More Options → "Is this a proxy?" → Verify
+            </p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">5</div>
           <div class="flow-content">
-            <h4>Interact with your program</h4>
-            <p>
-              <strong>Classic:</strong> <code>mirror.sendMessage()</code> — Full L1 finality<br />
-              <strong>Injected:</strong> <code>api.createInjectedTransaction()</code> — Instant pre-confirmation<br />
-              <strong>With ABI:</strong> Use Etherscan UI or standard Ethereum tooling
-            </p>
+            <h4>Fund the program</h4>
+            <p><code>npm run fund</code></p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">6</div>
           <div class="flow-content">
+            <h4>Interact with your program</h4>
+            <p>
+              <strong>Classic:</strong> <code>npm run init</code> then <code>npm run classic</code><br />
+              <strong>Injected:</strong> <code>npm run injected</code>
+            </p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">7</div>
+          <div class="flow-content">
             <h4>Read state</h4>
-            <p><code>api.call.program.calculateReplyForHandle()</code></p>
+            <p><code>npm run state</code></p>
           </div>
         </div>
       </div>
@@ -1217,11 +1113,89 @@ forge install</code></pre>
         <strong>parallel WASM execution and Web2-like speed</strong>. Your users interact through MetaMask like any
         other Ethereum app, but under the hood, they're getting instant feedback from a high-performance compute layer.
       </p>
+    </section>
 
-      <div class="closing">
-        <p>Welcome to Vara.eth.</p>
-        <div class="tagline">Be one of us.</div>
+    <!-- Advanced: Running Locally -->
+    <section id="local">
+      <h2>Advanced: Running Locally (Development Mode)</h2>
+
+      <p>For those who want to run Vara.eth locally for development and debugging:</p>
+
+      <h3>1. Clone the Gear Repository</h3>
+      <pre data-lang="bash"><code>git clone https://github.com/gear-tech/gear.git
+cd gear</code></pre>
+
+      <h3>2. Prerequisites</h3>
+      <p>
+        Complete the prerequisites from
+        <a href="https://wiki.vara.network/docs/getting-started-in-5-minutes#prerequisites" target="_blank"
+          >Getting started in 5 minutes</a
+        >.
+      </p>
+
+      <h3>3. Build Solidity Contracts</h3>
+      <p>The build expects Solidity ABI artifacts. Install Foundry first:</p>
+
+      <pre data-lang="bash"><code><span class="comment"># macOS</span>
+brew install foundry
+
+<span class="comment"># or follow Foundry install docs for Linux</span></code></pre>
+
+      <p>Build the contracts:</p>
+
+      <pre data-lang="bash"><code>cd ethexe/contracts
+forge install
+forge build
+cd ../..</code></pre>
+
+      <h3>4. Build Vara.eth CLI</h3>
+      <pre data-lang="bash"><code>cargo build -p ethexe-cli --release</code></pre>
+
+      <h3>5. Run Local Node</h3>
+      <pre data-lang="bash"><code>./target/release/ethexe run --dev --block-time 6 --rpc-port 9944</code></pre>
+
+      <h3>Available Endpoints</h3>
+      <p>Once running, the following endpoints become available:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Address</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ethexe RPC</strong></td>
+            <td><code>http://127.0.0.1:9944</code></td>
+            <td>Main RPC endpoint for ethexe interaction</td>
+          </tr>
+          <tr>
+            <td><strong>Ethereum RPC</strong></td>
+            <td><code>ws://127.0.0.1:8545</code></td>
+            <td>Ethereum-compatible RPC (Anvil)</td>
+          </tr>
+          <tr>
+            <td><strong>Router Contract</strong></td>
+            <td><code>0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9</code></td>
+            <td>On-chain routing contract</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">⚠️ Note</div>
+        <p>
+          In <code>--dev</code> mode, a local Ethereum environment is expected. If Anvil is not already running, start
+          it separately with <code>anvil</code> on port 8545.
+        </p>
       </div>
     </section>
+
+    <div class="closing">
+      <p>Welcome to Vara.eth.</p>
+      <div class="tagline">Be one of us.</div>
+    </div>
   </body>
 </html>
