@@ -5,10 +5,31 @@ import { ENV } from '../config/env';
 import { MEMBER_COUNT_REFRESH_MS, ZERO_ADDRESS } from '../config/constants';
 import { useReadOnlyApi } from './useReadOnlyApi';
 
+const PENDING_JOIN_KEY = 'one-of-us-pending-join';
+const COUNT_PAUSE_AFTER_JOIN_MS = 30000;
+
+function getInitialCountFromPendingJoin(): { count: number; pauseUntil: number } | null {
+  try {
+    const data = localStorage.getItem(PENDING_JOIN_KEY);
+    if (!data) return null;
+    
+    const pending = JSON.parse(data);
+    const pauseUntil = pending.timestamp + COUNT_PAUSE_AFTER_JOIN_MS;
+    
+    if (Date.now() < pauseUntil) {
+      return { count: pending.memberCountAtJoin, pauseUntil };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export const useMemberCount = (sails: Sails | null, walletApi?: VaraEthApi | null) => {
-  const [memberCount, setMemberCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const pausedUntilRef = useRef<number>(0);
+  const initial = getInitialCountFromPendingJoin();
+  const [memberCount, setMemberCount] = useState(initial?.count ?? 0);
+  const [isLoading, setIsLoading] = useState(!initial);
+  const pausedUntilRef = useRef<number>(initial?.pauseUntil ?? 0);
 
   const { api: readOnlyApi, isReady: readOnlyReady } = useReadOnlyApi();
 
@@ -39,7 +60,7 @@ export const useMemberCount = (sails: Sails | null, walletApi?: VaraEthApi | nul
 
   const setCount = useCallback((count: number) => {
     setMemberCount(count);
-    pausedUntilRef.current = Date.now() + 60000;
+    pausedUntilRef.current = Date.now() + COUNT_PAUSE_AFTER_JOIN_MS;
   }, []);
 
   return { memberCount, isLoading, setMemberCount: setCount };

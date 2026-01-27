@@ -37,10 +37,19 @@ function App() {
       return;
     }
 
+    const currentAddress = wallet.address;
+    let cancelled = false;
+    
     const client = new EthereumClient(wallet.publicClient, wallet.walletClient, ENV.ROUTER_ADDRESS);
     client.isInitialized.then(() => {
-      setEthereumClient(client);
+      if (!cancelled && wallet.address === currentAddress) {
+        setEthereumClient(client);
+      }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [wallet.address, wallet.walletClient, wallet.publicClient, wallet.isConnected]);
 
   // Vara API (for transactions)

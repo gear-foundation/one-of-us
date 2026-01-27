@@ -3,6 +3,7 @@ target/
 .DS_Store
 ethexe
 Cargo.lock
+.cursor/debug.log
 
 # Frontend
 frontend/node_modules/

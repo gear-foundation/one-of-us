@@ -68,16 +68,27 @@ export const useJoinProgram = (
   const [txStatus, setTxStatus] = useState<TxStatus>('idle');
   const [checkingMembership, setCheckingMembership] = useState(false);
   const unwatchRef = useRef<(() => void) | null>(null);
+  const addressRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    addressRef.current = address;
+  }, [address]);
 
   const startWatchingFinalization = useCallback(() => {
     if (!publicClient || !address || unwatchRef.current) return;
 
-    const userAddress = address;
+    const watchAddress = address;
     unwatchRef.current = publicClient.watchContractEvent({
       address: ENV.PROGRAM_ID,
       abi: [STATE_CHANGED_EVENT],
       eventName: 'StateChanged',
       onLogs: (logs) => {
+        if (addressRef.current !== watchAddress) {
+          unwatchRef.current?.();
+          unwatchRef.current = null;
+          return;
+        }
+        
         if (logs.length > 0) {
           const hash = logs[0].transactionHash;
           setTxHash(hash);
@@ -87,13 +98,15 @@ export const useJoinProgram = (
           clearPendingJoin();
           unwatchRef.current?.();
           unwatchRef.current = null;
-          updateMemberTxHash(userAddress, hash);
+          if (addressRef.current) {
+            updateMemberTxHash(addressRef.current, hash);
+          }
         }
       },
     });
 
     setTimeout(() => {
-      if (unwatchRef.current) {
+      if (unwatchRef.current && addressRef.current === watchAddress) {
         unwatchRef.current();
         unwatchRef.current = null;
         setFinalized(true);
@@ -105,15 +118,33 @@ export const useJoinProgram = (
   }, [publicClient, address]);
 
   const checkMembership = useCallback(async () => {
-    if (!address || !isConnected) return;
+    unwatchRef.current?.();
+    unwatchRef.current = null;
+    
+    setIsJoined(false);
+    setLoading(false);
+    setTxHash(null);
+    setFinalized(false);
+    setError(null);
+    setTxStatus('idle');
+    
+    if (!address || !isConnected) {
+      return;
+    }
 
     setCheckingMembership(true);
     
     const pendingJoin = getPendingJoin();
     const hasPendingLocal = pendingJoin && pendingJoin.address === address.toLowerCase();
+    
+    if (pendingJoin && !hasPendingLocal) {
+      clearPendingJoin();
+    }
 
     try {
       const result = await checkMember(address);
+      
+      if (addressRef.current !== address) return;
       
       if (result.isMember) {
         setIsJoined(true);
@@ -141,6 +172,8 @@ export const useJoinProgram = (
         registerMember(address, '');
       }
     } catch {
+      if (addressRef.current !== address) return;
+      
       if (hasPendingLocal) {
         setIsJoined(true);
         setFinalized(false);
@@ -158,14 +191,14 @@ export const useJoinProgram = (
   }, [checkMembership]);
 
   useEffect(() => {
-    if (isJoined && !finalized && txStatus === 'confirming' && publicClient) {
+    if (isJoined && !finalized && txStatus === 'confirming' && publicClient && address) {
       startWatchingFinalization();
     }
     return () => {
       unwatchRef.current?.();
       unwatchRef.current = null;
     };
-  }, [isJoined, finalized, txStatus, publicClient, startWatchingFinalization]);
+  }, [isJoined, finalized, txStatus, publicClient, startWatchingFinalization, address]);
 
   const handleJoin = async () => {
     setError(null);
