@@ -45,61 +45,29 @@ async function callVaraEthRpc(method: string, params: Record<string, unknown>): 
   return response.json();
 }
 
-function decodeScaleCompactU32(hexPayload: string): number {
-  // The response payload contains: [prefix][SCALE compact u32]
+function decodeU32Le(hexPayload: string): number {
+  // The response payload contains: [prefix][u32 little-endian]
   // Prefix is the Count query payload, result follows
-  
-  // Remove 0x prefix if present
+
   const hex = hexPayload.startsWith('0x') ? hexPayload.slice(2) : hexPayload;
-  
-  // The prefix is the Count payload (without 0x): 1c4f6e654f66557314436f756e74
   const prefixLen = COUNT_PAYLOAD.length - 2; // Without 0x
-  
-  if (hex.length <= prefixLen) {
+
+  if (hex.length <= prefixLen + 8) {
     return 0;
   }
-  
-  // Get the result portion after prefix
-  const resultHex = hex.slice(prefixLen);
-  
-  if (resultHex.length < 2) {
+
+  // Take the last 4 bytes as u32 LE
+  const u32Hex = hex.slice(-8);
+  const bytes = u32Hex.match(/.{2}/g);
+  if (!bytes || bytes.length !== 4) {
     return 0;
   }
-  
-  // First byte determines encoding mode
-  const firstByte = parseInt(resultHex.slice(0, 2), 16);
-  const mode = firstByte & 0b11;
-  
-  // SCALE Compact encoding:
-  // - Mode 00: single byte, value = byte >> 2 (values 0-63)
-  // - Mode 01: two bytes LE, value = uint16 >> 2 (values 64-16383)
-  // - Mode 10: four bytes LE, value = uint32 >> 2 (values 16384-1073741823)
-  // - Mode 11: big integer (not used for u32)
-  
-  if (mode === 0b00) {
-    // Single byte mode
-    return firstByte >> 2;
-  } else if (mode === 0b01) {
-    // Two byte mode
-    if (resultHex.length < 4) return 0;
-    const byte0 = parseInt(resultHex.slice(0, 2), 16);
-    const byte1 = parseInt(resultHex.slice(2, 4), 16);
-    const value = (byte1 << 8) | byte0;
-    return value >> 2;
-  } else if (mode === 0b10) {
-    // Four byte mode
-    if (resultHex.length < 8) return 0;
-    const bytes = [
-      parseInt(resultHex.slice(0, 2), 16),
-      parseInt(resultHex.slice(2, 4), 16),
-      parseInt(resultHex.slice(4, 6), 16),
-      parseInt(resultHex.slice(6, 8), 16),
-    ];
-    const value = (bytes[3] << 24) | (bytes[2] << 16) | (bytes[1] << 8) | bytes[0];
-    return (value >> 2) >>> 0;
-  }
-  
-  return 0;
+
+  const value = bytes
+    .reverse()
+    .reduce((acc, byte) => (acc << 8) | parseInt(byte, 16), 0);
+
+  return value >>> 0;
 }
 
 export async function getBlockchainMemberCount(): Promise<number> {
@@ -129,7 +97,7 @@ export async function getBlockchainMemberCount(): Promise<number> {
       return cachedCount ?? 0;
     }
 
-    const count = decodeScaleCompactU32(response.result.payload);
+    const count = decodeU32Le(response.result.payload);
     
     // Update cache
     cachedCount = count;
