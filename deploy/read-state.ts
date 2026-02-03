@@ -10,6 +10,7 @@ import {
   EthereumClient,
   VaraEthApi,
   WsVaraEthProvider,
+  HttpVaraEthProvider,
   getMirrorClient,
 } from '@vara-eth/api';
 import { Sails } from 'sails-js';
@@ -18,6 +19,7 @@ import {
   PRIVATE_KEY,
   ETH_RPC,
   VARA_ETH_WS,
+  VARA_ETH_HTTP,
   ROUTER_ADDRESS,
   PROGRAM_ID,
   HOODI_CHAIN_ID,
@@ -63,13 +65,19 @@ async function main() {
   await ethereumClient.isInitialized;
   const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
 
-  const provider = new WsVaraEthProvider(
-    VARA_ETH_WS as `ws://${string}` | `wss://${string}`
-  );
+  let provider: WsVaraEthProvider | HttpVaraEthProvider;
+  
+  // Use WebSocket only if explicitly configured, otherwise use HTTP
+  if (VARA_ETH_WS) {
+    console.log('Using WebSocket provider:', VARA_ETH_WS);
+    provider = new WsVaraEthProvider(VARA_ETH_WS as `ws://${string}` | `wss://${string}`);
+    await provider.connect();
+  } else {
+    console.log('Using HTTP provider:', VARA_ETH_HTTP);
+    provider = new HttpVaraEthProvider(VARA_ETH_HTTP as `http://${string}` | `https://${string}`);
+  }
+  
   const api = new VaraEthApi(provider, ethereumClient);
-
-  // Connect WebSocket provider
-  await provider.connect();
 
   // Get the current state hash from Ethereum (Mirror contract)
   const stateHash = await mirror.stateHash();

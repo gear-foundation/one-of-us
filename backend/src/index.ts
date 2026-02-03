@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { CONFIG } from './config.js';
 import { initDb, addMember, getMember, getAllMembers, getMemberCount, updateMemberTxHash } from './db.js';
+import { getBlockchainMemberCount } from './blockchain.js';
 
 const app = express();
 
@@ -12,10 +13,21 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Returns the member count from blockchain (cached for 10s)
 app.get('/api/members/count', async (_req, res) => {
   try {
+    const count = await getBlockchainMemberCount();
+    res.json({ count, source: 'blockchain' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Returns the member count from database (for comparison/debugging)
+app.get('/api/members/count/db', async (_req, res) => {
+  try {
     const count = await getMemberCount();
-    res.json({ count });
+    res.json({ count, source: 'database' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -6,7 +6,7 @@
   "type": "module",
   "dependencies": {
     "@tanstack/react-query": "^5.90.11",
-    "@vara-eth/api": "^0.1.0",
+    "@vara-eth/api": "^0.1.1",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "events": "^3.3.0",
