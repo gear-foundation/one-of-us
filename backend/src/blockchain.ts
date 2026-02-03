@@ -9,7 +9,7 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 // Cache for member count
 let cachedCount: number | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL_MS = 10_000; // 10 seconds
+const CACHE_TTL_MS = 2_000; // 2 seconds
 
 interface JsonRpcResponse {
   jsonrpc: string;
@@ -144,7 +144,3 @@ export async function getBlockchainMemberCount(): Promise<number> {
   }
 }
 
-export function clearBlockchainCache(): void {
-  cachedCount = null;
-  cacheTimestamp = 0;
-}
