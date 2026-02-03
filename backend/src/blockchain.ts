@@ -52,7 +52,7 @@ function decodeU32Le(hexPayload: string): number {
   const hex = hexPayload.startsWith('0x') ? hexPayload.slice(2) : hexPayload;
   const prefixLen = COUNT_PAYLOAD.length - 2; // Without 0x
 
-  if (hex.length <= prefixLen + 8) {
+  if (hex.length < prefixLen + 8) {
     return 0;
   }
 
