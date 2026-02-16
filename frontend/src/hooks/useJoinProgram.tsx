@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { VaraEthApi } from '@vara-eth/api';
 import { Sails } from 'sails-js';
-import { type PublicClient } from 'viem';
+import  { compactAddLength} from '@polkadot/util'
+import { type PublicClient, hexToBytes, concat, sha256, stringToHex } from 'viem';
 import { ENV } from '../config/env';
 import { registerMember, checkMember, updateMemberTxHash } from '../utils/api';
+import { openPasskeyPopupAndWait } from '../features/auth/passkeyPopup';
+import { VARAUTH_PROGRAM_ID } from '../features/auth/consts';
+import { useSails } from './useSails';
+import idlContentAuth from '../features/auth/varauth.idl?raw';
 
 const STATE_CHANGED_EVENT = {
   type: 'event',
@@ -55,11 +60,12 @@ export const useJoinProgram = (
   varaApi: VaraEthApi | null,
   sails: Sails | null,
   address: string | null,
-  isConnected: boolean,
+  _isConnected: boolean,
   publicClient: PublicClient | null,
   currentMemberCount: number,
   onMemberCountRestore?: (count: number) => void
 ) => {
+  const isConnected = true;
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -69,6 +75,8 @@ export const useJoinProgram = (
   const [checkingMembership, setCheckingMembership] = useState(false);
   const unwatchRef = useRef<(() => void) | null>(null);
   const addressRef = useRef<string | null>(null);
+
+  const { sails: sailsAuth } = useSails(idlContentAuth);
 
   useEffect(() => {
     addressRef.current = address;
@@ -216,6 +224,10 @@ export const useJoinProgram = (
       setError('Loading program interface...');
       return false;
     }
+    if (!sailsAuth) {
+      setError('Loading auth program interface...');
+      return false;
+    }
 
     setLoading(true);
     setTxHash(null);
@@ -223,20 +235,86 @@ export const useJoinProgram = (
     setTxStatus('signing');
 
     try {
-      const payload = sails.services.OneOfUs.functions.JoinUs.encodePayload();
+        // const d32bytes = '0x' + '0xcb72581cbec72ece141fec7422e83b68f9e551df'.slice(2).padStart(64, '0');
+      // const isOneOfUsPayload = sails.services.OneOfUs.queries.IsOneOfUs.encodePayload(d32bytes);
+      // console.log("🚀 ~ handleJoin ~ isOneOfUs:", isOneOfUsPayload)
+      // const isOneOfUsReply = await varaApi.call.program.calculateReplyForHandle(address, '0xf3692291b8da827d3a39f6072720a79422401991', isOneOfUsPayload);
+      // console.log("🚀 ~ handleJoin ~ isOneOfUsReply:", isOneOfUsReply)
+      // const isOneOfUs = sails.services.OneOfUs.queries.IsOneOfUs.decodeResult(isOneOfUsReply.payload);
+      // console.log("🚀 ~ handleJoin ~ isOneOfUs:", isOneOfUs)
+      // return;
+      const nonceTx =
+        sailsAuth.services.Nonce.queries.NextNonce.encodePayload();
+      const nonceReply = await varaApi.call.program.calculateReplyForHandle(
+        address,
+        VARAUTH_PROGRAM_ID,
+        nonceTx
+      );
+      const nonce = sailsAuth.services.Nonce.queries.NextNonce.decodeResult(
+        nonceReply.payload
+      );
+      console.log("🚀 ~ handleJoin ~ nonce:", nonce)
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const joinPayload =
+        sails.services.OneOfUs.functions.JoinUs.encodePayload();
+      const destinationId = ENV.PROGRAM_ID;
+      // const dataToSign = {
+      //   payload: joinPayload,
+      //   nonce,
+      //   destinationId,
+      // };
+
+      // Encode (payload, nonce, destination) per Scale-like layout and hash
+      const payloadBytes = hexToBytes(joinPayload);
+      console.log("🚀 ~ handleJoin ~ payloadBytes:", payloadBytes)
+     
+      const nonceBytes = new Uint8Array(8);
+      new DataView(nonceBytes.buffer).setBigUint64(0, BigInt(nonce), true);
+      console.log("🚀 ~ handleJoin ~ nonceBytes:", nonceBytes)
+      
+      const destinationBytes = hexToBytes(
+        ("0x" + destinationId.slice(2).padStart(64, "0")) as `0x${string}`
+      );
+      console.log("🚀 ~ handleJoin ~ destinationBytes:", destinationBytes)
+
+      const encodedForSign = concat([
+        compactAddLength(payloadBytes),
+        nonceBytes,
+        destinationBytes,
+      ]);
+      console.log("🚀 ~ handleJoin ~ encodedForSign:", encodedForSign)
+      const hashToSign = sha256(encodedForSign);
+      console.log("🚀 ~ handleJoin ~ hashToSign:", hashToSign)
+
+      const result = await openPasskeyPopupAndWait(hashToSign);
+      const { signature, credential_id, authenticator_data, id } = result;
+      console.log("Passkey result:", result);
+
+      const destination32bytes =
+        "0x" + destinationId.slice(2).padStart(64, "0");
+      const payloaToProxy =
+        sailsAuth.services.Verifier.functions.SubmitTx.encodePayload(
+          joinPayload,
+          nonce,
+          destination32bytes,
+          'https://passkey.mithriy.com',
+          authenticator_data,
+          signature
+        );
+      console.log("🚀 ~ handleJoin ~ payloaToProxy:", payloaToProxy);
+
       const injected = await varaApi.createInjectedTransaction({
-        destination: ENV.PROGRAM_ID,
-        payload: payload as `0x${string}`,
+        destination: VARAUTH_PROGRAM_ID,
+        payload: payloaToProxy,
         value: 0n,
-      } as any);
+      });
+      console.log("🚀 ~ handleJoin ~ injected:", injected);
+      const sendResult = await injected.sendAndWaitForPromise();
+      console.log("🚀 ~ handleJoin ~ sendResult:", sendResult);
 
-      const sendResult = await injected.send();
-
-      if (sendResult === 'Reject') {
-        throw new Error('Transaction rejected by validator');
-      }
+      // if (sendResult === 'Reject') {
+      //   throw new Error('Transaction rejected by validator');
+      // }
 
       setIsJoined(true);
       setTxStatus('confirming');
@@ -252,6 +330,7 @@ export const useJoinProgram = (
       return true;
     } catch (e: any) {
       setTxStatus('error');
+      console.error('Error:', e);
 
       if (e?.code === 4001 || e?.message?.includes('rejected') || e?.message?.includes('denied')) {
         setError('Transaction cancelled by user');

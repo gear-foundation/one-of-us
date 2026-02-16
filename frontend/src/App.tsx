@@ -9,6 +9,7 @@ import { useMemberCount } from './hooks/useMemberCount';
 import { useJoinProgram } from './hooks/useJoinProgram';
 import { isHoodiNetwork } from './config/constants';
 import { ENV } from './config/env';
+import idlContent from './one_of_us.idl?raw';
 
 import {
   StarsBackground,
@@ -20,10 +21,12 @@ import {
   FloatingCat,
   FloatingUfo,
 } from './components';
+import { useAuthCallback } from './features/auth/useAuthCallback';
 
 function App() {
+  useAuthCallback();
   const wallet = useWallet();
-  const { sails, loading: sailsLoading, error: sailsError } = useSails();
+  const { sails, loading: sailsLoading, error: sailsError } = useSails(idlContent);
 
   // Check if on correct network
   const isCorrectNetwork = isHoodiNetwork(wallet.chainId);
@@ -87,18 +90,18 @@ function App() {
       <FloatingCat />
       <FloatingUfo />
 
-      <Header
+      {/* <Header
         address={wallet.address}
         chainId={wallet.chainId}
         isConnected={wallet.isConnected}
         isConnecting={wallet.isConnecting}
-        isMetaMaskInstalled={wallet.isMetaMaskInstalled}
+        isMetaMaskInstalled={true}
         isCorrectNetwork={isCorrectNetwork}
         error={wallet.error}
         onConnect={handleConnect}
         onDisconnect={wallet.disconnect}
-        onSwitchNetwork={wallet.switchToHoodi}
-      />
+        onSwitchNetwork={() => {}}
+      /> */}
 
       <main className="main-content">
         <SloganCarousel />
@@ -131,7 +134,6 @@ function App() {
         <JoinSection
           isConnected={wallet.isConnected}
           isConnecting={wallet.isConnecting}
-          isMetaMaskInstalled={wallet.isMetaMaskInstalled}
           isJoined={isJoined}
           loading={loading}
           sailsLoading={sailsLoading}

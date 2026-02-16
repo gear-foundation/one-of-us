@@ -1,0 +1,12 @@
+constructor {
+  Create : (pubkey: vec u8);
+};
+
+service Verifier {
+  SubmitTx : (payload: vec u8, nonce: u64, destination: actor_id, origin: str, authenticator_data: vec u8, signature: vec u8) -> null;
+};
+
+service Nonce {
+  query NextNonce : () -> u64;
+};
+

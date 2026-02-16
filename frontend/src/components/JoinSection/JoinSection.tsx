@@ -5,7 +5,6 @@ import { TxStatus } from '../../hooks/useJoinProgram';
 interface JoinSectionProps {
   isConnected: boolean;
   isConnecting: boolean;
-  isMetaMaskInstalled: boolean;
   isJoined: boolean;
   loading: boolean;
   sailsLoading: boolean;
@@ -34,7 +33,6 @@ const TX_STATUS_MESSAGES: Record<TxStatus, string> = {
 export const JoinSection = ({
   isConnected,
   isConnecting,
-  isMetaMaskInstalled,
   isJoined,
   loading,
   sailsLoading,
@@ -60,10 +58,7 @@ export const JoinSection = ({
       {sailsError && <div className="status-message error">⚠️ Failed to load program: {sailsError}</div>}
 
       {!isConnected ? (
-        <button className="connect-button" onClick={onConnect} disabled={isConnecting || !isMetaMaskInstalled}>
-          <span className="button-icon">🦊</span>
-          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-        </button>
+        null
       ) : checkingMembership ? (
         <div className="status-message loading">
           <span className="spinner"></span>

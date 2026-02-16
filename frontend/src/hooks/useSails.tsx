@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Sails } from 'sails-js';
 import { SailsIdlParser } from 'sails-js-parser';
-import idlContent from '../one_of_us.idl?raw';
 
-export function useSails() {
+export function useSails(idl: string) {
   const [sails, setSails] = useState<Sails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +14,7 @@ export function useSails() {
       try {
         const parser = await SailsIdlParser.new();
         const sailsInstance = new Sails(parser);
-        await sailsInstance.parseIdl(idlContent);
+        await sailsInstance.parseIdl(idl);
         
         if (mounted) {
           setSails(sailsInstance);
