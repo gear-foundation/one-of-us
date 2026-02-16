@@ -79,13 +79,13 @@ export const useJoinProgram = (
   const { sails: sailsAuth } = useSails(idlContentAuth);
 
   useEffect(() => {
-    addressRef.current = address;
-  }, [address]);
+    addressRef.current = varauthProgramId ?? null;
+  }, [varauthProgramId]);
 
   const startWatchingFinalization = useCallback(() => {
-    if (!publicClient || !address || unwatchRef.current) return;
+    if (!publicClient || !varauthProgramId || unwatchRef.current) return;
 
-    const watchAddress = address;
+    const watchAddress = varauthProgramId;
     unwatchRef.current = publicClient.watchContractEvent({
       address: ENV.PROGRAM_ID,
       abi: [STATE_CHANGED_EVENT],
@@ -123,7 +123,7 @@ export const useJoinProgram = (
         clearPendingJoin();
       }
     }, 300000);
-  }, [publicClient, address]);
+  }, [publicClient, varauthProgramId]);
 
   const checkMembership = useCallback(async () => {
     unwatchRef.current?.();
@@ -144,7 +144,7 @@ export const useJoinProgram = (
 
     const pendingJoin = getPendingJoin();
     const hasPendingLocal =
-      pendingJoin && pendingJoin.address === address.toLowerCase();
+      pendingJoin && pendingJoin.address === varauthProgramId.toLowerCase();
 
     if (pendingJoin && !hasPendingLocal) {
       clearPendingJoin();
@@ -155,7 +155,7 @@ export const useJoinProgram = (
       console.log("🚀 ~ useJoinProgram ~ varauthProgramId:", varauthProgramId);
       console.log("🚀 ~ useJoinProgram ~ result:", result);
 
-      if (addressRef.current !== address) return;
+      if (addressRef.current !== varauthProgramId) return;
 
       if (result.isMember) {
         setIsJoined(true);
@@ -180,10 +180,10 @@ export const useJoinProgram = (
         setTxStatus("confirming");
         setLoading(true);
         onMemberCountRestore?.(pendingJoin.memberCountAtJoin);
-        registerMember(address, "");
+        registerMember(varauthProgramId, "");
       }
     } catch {
-      if (addressRef.current !== address) return;
+      if (addressRef.current !== varauthProgramId) return;
 
       if (hasPendingLocal) {
         setIsJoined(true);
@@ -195,7 +195,7 @@ export const useJoinProgram = (
     } finally {
       setCheckingMembership(false);
     }
-  }, [address, isConnected, onMemberCountRestore, varauthProgramId]);
+  }, [address,varauthProgramId, isConnected, onMemberCountRestore]);
 
   useEffect(() => {
     checkMembership();
@@ -207,7 +207,7 @@ export const useJoinProgram = (
       !finalized &&
       txStatus === "confirming" &&
       publicClient &&
-      address
+      varauthProgramId
     ) {
       startWatchingFinalization();
     }
@@ -221,7 +221,7 @@ export const useJoinProgram = (
     txStatus,
     publicClient,
     startWatchingFinalization,
-    address,
+    varauthProgramId,
   ]);
 
   const handleJoin = async () => {
@@ -337,10 +337,10 @@ export const useJoinProgram = (
       setFinalized(false);
 
       const newCount = currentMemberCount + 1;
-      savePendingJoin(address, newCount);
+      savePendingJoin(varauthProgramId, newCount);
       onMemberCountRestore?.(newCount);
 
-      registerMember(address, "");
+      registerMember(varauthProgramId, "");
       startWatchingFinalization();
 
       return true;
