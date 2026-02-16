@@ -58,7 +58,23 @@ export const JoinSection = ({
       {sailsError && <div className="status-message error">⚠️ Failed to load program: {sailsError}</div>}
 
       {!isConnected ? (
-        null
+        <button
+          className="join-button connect-button"
+          onClick={onConnect}
+          disabled={isConnecting}
+        >
+          {isConnecting ? (
+            <>
+              <span className="spinner"></span>
+              Connecting...
+            </>
+          ) : (
+            <>
+              <span className="button-icon">🔗</span>
+              Connect with Passkey
+            </>
+          )}
+        </button>
       ) : checkingMembership ? (
         <div className="status-message loading">
           <span className="spinner"></span>

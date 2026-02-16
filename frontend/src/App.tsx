@@ -22,6 +22,7 @@ import {
   FloatingUfo,
 } from './components';
 import { useAuthCallback } from './features/auth/useAuthCallback';
+import { useVaraAuth } from './features/auth/useVaraAuth';
 
 function App() {
   useAuthCallback();
@@ -59,6 +60,7 @@ function App() {
   const { varaApi, isReady: varaApiReady } = useVaraApi(ethereumClient, wallet.isConnected);
 
   const { memberCount, setMemberCount } = useMemberCount(sails, varaApi);
+  const { varauthProgramId, authenticateWithPasskey, clearProgramId } = useVaraAuth();
 
   const {
     isJoined,
@@ -76,12 +78,13 @@ function App() {
     wallet.isConnected,
     wallet.publicClient,
     memberCount,
-    setMemberCount
+    setMemberCount,
+    varauthProgramId
   );
 
   const handleConnect = async () => {
     if (wallet.isConnecting) return;
-    await wallet.connect();
+    await authenticateWithPasskey();
   };
 
   return (
@@ -90,18 +93,18 @@ function App() {
       <FloatingCat />
       <FloatingUfo />
 
-      {/* <Header
-        address={wallet.address}
+      <Header
+        address={varauthProgramId}
         chainId={wallet.chainId}
-        isConnected={wallet.isConnected}
+        isConnected={!!varauthProgramId}
         isConnecting={wallet.isConnecting}
         isMetaMaskInstalled={true}
         isCorrectNetwork={isCorrectNetwork}
         error={wallet.error}
         onConnect={handleConnect}
-        onDisconnect={wallet.disconnect}
+        onDisconnect={clearProgramId}
         onSwitchNetwork={() => {}}
-      /> */}
+      />
 
       <main className="main-content">
         <SloganCarousel />
@@ -132,7 +135,7 @@ function App() {
         <Stats memberCount={memberCount} />
 
         <JoinSection
-          isConnected={wallet.isConnected}
+          isConnected={!!varauthProgramId}
           isConnecting={wallet.isConnecting}
           isJoined={isJoined}
           loading={loading}

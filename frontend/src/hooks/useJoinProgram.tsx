@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { VaraEthApi } from '@vara-eth/api';
 import { Sails } from 'sails-js';
 import  { compactAddLength} from '@polkadot/util'
-import { type PublicClient, hexToBytes, concat, sha256, stringToHex } from 'viem';
+import { type PublicClient, hexToBytes, concat, sha256 } from 'viem';
 import { ENV } from '../config/env';
 import { registerMember, checkMember, updateMemberTxHash } from '../utils/api';
-import { openPasskeyPopupAndWait } from '../features/auth/passkeyPopup';
-import { VARAUTH_PROGRAM_ID } from '../features/auth/consts';
+import { openPasskeySignPopupAndWait } from '../features/auth/passkeyPopup';
 import { useSails } from './useSails';
 import idlContentAuth from '../features/auth/varauth.idl?raw';
 
@@ -63,7 +62,8 @@ export const useJoinProgram = (
   _isConnected: boolean,
   publicClient: PublicClient | null,
   currentMemberCount: number,
-  onMemberCountRestore?: (count: number) => void
+  onMemberCountRestore?: (count: number) => void,
+  varauthProgramId?: `0x${string}` | null
 ) => {
   const isConnected = true;
   const [isJoined, setIsJoined] = useState(false);
@@ -216,6 +216,10 @@ export const useJoinProgram = (
       setError('Please connect wallet first');
       return false;
     }
+    if (!varauthProgramId) {
+      setError('Please authenticate with passkey first');
+      return false;
+    }
     if (!varaApi) {
       setError('API not ready yet, please wait...');
       return false;
@@ -247,7 +251,7 @@ export const useJoinProgram = (
         sailsAuth.services.Nonce.queries.NextNonce.encodePayload();
       const nonceReply = await varaApi.call.program.calculateReplyForHandle(
         address,
-        VARAUTH_PROGRAM_ID,
+        varauthProgramId,
         nonceTx
       );
       const nonce = sailsAuth.services.Nonce.queries.NextNonce.decodeResult(
@@ -258,11 +262,6 @@ export const useJoinProgram = (
       const joinPayload =
         sails.services.OneOfUs.functions.JoinUs.encodePayload();
       const destinationId = ENV.PROGRAM_ID;
-      // const dataToSign = {
-      //   payload: joinPayload,
-      //   nonce,
-      //   destinationId,
-      // };
 
       // Encode (payload, nonce, destination) per Scale-like layout and hash
       const payloadBytes = hexToBytes(joinPayload);
@@ -286,8 +285,13 @@ export const useJoinProgram = (
       const hashToSign = sha256(encodedForSign);
       console.log("🚀 ~ handleJoin ~ hashToSign:", hashToSign)
 
-      const result = await openPasskeyPopupAndWait(hashToSign);
+      const result = await openPasskeySignPopupAndWait(hashToSign);
       const { signature, credential_id, authenticator_data, id } = result;
+
+      if (id !== hashToSign) {
+        throw new Error('Invalid id in passkey signature');
+      }
+
       console.log("Passkey result:", result);
 
       const destination32bytes =
@@ -304,17 +308,13 @@ export const useJoinProgram = (
       console.log("🚀 ~ handleJoin ~ payloaToProxy:", payloaToProxy);
 
       const injected = await varaApi.createInjectedTransaction({
-        destination: VARAUTH_PROGRAM_ID,
+        destination: varauthProgramId,
         payload: payloaToProxy,
         value: 0n,
       });
       console.log("🚀 ~ handleJoin ~ injected:", injected);
       const sendResult = await injected.sendAndWaitForPromise();
       console.log("🚀 ~ handleJoin ~ sendResult:", sendResult);
-
-      // if (sendResult === 'Reject') {
-      //   throw new Error('Transaction rejected by validator');
-      // }
 
       setIsJoined(true);
       setTxStatus('confirming');
@@ -323,7 +323,7 @@ export const useJoinProgram = (
       const newCount = currentMemberCount + 1;
       savePendingJoin(address, newCount);
       onMemberCountRestore?.(newCount);
-      
+
       registerMember(address, '');
       startWatchingFinalization();
 

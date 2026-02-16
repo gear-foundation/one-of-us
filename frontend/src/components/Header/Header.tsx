@@ -53,7 +53,7 @@ export const Header = ({
           </div>
         ) : (
           <button className="connect-wallet-btn" onClick={onConnect} disabled={isConnecting || !isMetaMaskInstalled}>
-            {isConnecting ? '⏳ Connecting...' : '🦊 Connect'}
+            {isConnecting ? '⏳ Connecting...' :  'Connect with Passkey'}
           </button>
         )}
 
