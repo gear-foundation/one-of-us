@@ -1,21 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { VaraEthApi } from '@vara-eth/api';
-import { Sails } from 'sails-js';
-import  { compactAddLength} from '@polkadot/util'
-import { type PublicClient, hexToBytes, concat, sha256 } from 'viem';
-import { ENV } from '../config/env';
-import { registerMember, checkMember, updateMemberTxHash } from '../utils/api';
-import { openPasskeySignPopupAndWait } from '../features/auth/passkeyPopup';
-import { useSails } from './useSails';
-import idlContentAuth from '../features/auth/varauth.idl?raw';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { VaraEthApi } from "@vara-eth/api";
+import { Sails } from "sails-js";
+import { compactAddLength } from "@polkadot/util";
+import { type PublicClient, hexToBytes, concat, sha256 } from "viem";
+import { ENV } from "../config/env";
+import { registerMember, checkMember, updateMemberTxHash } from "../utils/api";
+import { openPasskeySignPopupAndWait } from "../features/auth/passkeyPopup";
+import { useSails } from "./useSails";
+import idlContentAuth from "../features/auth/varauth.idl?raw";
 
 const STATE_CHANGED_EVENT = {
-  type: 'event',
-  name: 'StateChanged',
-  inputs: [{ name: 'stateHash', type: 'bytes32', indexed: false }],
+  type: "event",
+  name: "StateChanged",
+  inputs: [{ name: "stateHash", type: "bytes32", indexed: false }],
 } as const;
 
-const PENDING_JOIN_KEY = 'one-of-us-pending-join';
+const PENDING_JOIN_KEY = "one-of-us-pending-join";
 const PENDING_JOIN_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 interface PendingJoin {
@@ -37,7 +37,7 @@ function getPendingJoin(): PendingJoin | null {
   try {
     const data = localStorage.getItem(PENDING_JOIN_KEY);
     if (!data) return null;
-    
+
     const pending: PendingJoin = JSON.parse(data);
     if (Date.now() - pending.timestamp > PENDING_JOIN_TIMEOUT) {
       localStorage.removeItem(PENDING_JOIN_KEY);
@@ -53,7 +53,7 @@ function clearPendingJoin() {
   localStorage.removeItem(PENDING_JOIN_KEY);
 }
 
-export type TxStatus = 'idle' | 'signing' | 'confirming' | 'success' | 'error';
+export type TxStatus = "idle" | "signing" | "confirming" | "success" | "error";
 
 export const useJoinProgram = (
   varaApi: VaraEthApi | null,
@@ -71,7 +71,7 @@ export const useJoinProgram = (
   const [txHash, setTxHash] = useState<string | null>(null);
   const [finalized, setFinalized] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [txStatus, setTxStatus] = useState<TxStatus>('idle');
+  const [txStatus, setTxStatus] = useState<TxStatus>("idle");
   const [checkingMembership, setCheckingMembership] = useState(false);
   const unwatchRef = useRef<(() => void) | null>(null);
   const addressRef = useRef<string | null>(null);
@@ -89,19 +89,19 @@ export const useJoinProgram = (
     unwatchRef.current = publicClient.watchContractEvent({
       address: ENV.PROGRAM_ID,
       abi: [STATE_CHANGED_EVENT],
-      eventName: 'StateChanged',
+      eventName: "StateChanged",
       onLogs: (logs) => {
         if (addressRef.current !== watchAddress) {
           unwatchRef.current?.();
           unwatchRef.current = null;
           return;
         }
-        
+
         if (logs.length > 0) {
           const hash = logs[0].transactionHash;
           setTxHash(hash);
           setFinalized(true);
-          setTxStatus('success');
+          setTxStatus("success");
           setLoading(false);
           clearPendingJoin();
           unwatchRef.current?.();
@@ -118,7 +118,7 @@ export const useJoinProgram = (
         unwatchRef.current();
         unwatchRef.current = null;
         setFinalized(true);
-        setTxStatus('success');
+        setTxStatus("success");
         setLoading(false);
         clearPendingJoin();
       }
@@ -128,45 +128,48 @@ export const useJoinProgram = (
   const checkMembership = useCallback(async () => {
     unwatchRef.current?.();
     unwatchRef.current = null;
-    
+
     setIsJoined(false);
     setLoading(false);
     setTxHash(null);
     setFinalized(false);
     setError(null);
-    setTxStatus('idle');
-    
-    if (!address || !isConnected) {
+    setTxStatus("idle");
+
+    if (!address || !isConnected || !varauthProgramId) {
       return;
     }
 
     setCheckingMembership(true);
-    
+
     const pendingJoin = getPendingJoin();
-    const hasPendingLocal = pendingJoin && pendingJoin.address === address.toLowerCase();
-    
+    const hasPendingLocal =
+      pendingJoin && pendingJoin.address === address.toLowerCase();
+
     if (pendingJoin && !hasPendingLocal) {
       clearPendingJoin();
     }
 
     try {
-      const result = await checkMember(address);
-      
+      const result = await checkMember(varauthProgramId);
+      console.log("🚀 ~ useJoinProgram ~ varauthProgramId:", varauthProgramId);
+      console.log("🚀 ~ useJoinProgram ~ result:", result);
+
       if (addressRef.current !== address) return;
-      
+
       if (result.isMember) {
         setIsJoined(true);
-        
+
         if (result.member?.tx_hash) {
           setTxHash(result.member.tx_hash);
           setFinalized(true);
-          setTxStatus('success');
+          setTxStatus("success");
           clearPendingJoin();
         } else {
           setFinalized(false);
-          setTxStatus('confirming');
+          setTxStatus("confirming");
           setLoading(true);
-          
+
           if (hasPendingLocal) {
             onMemberCountRestore?.(pendingJoin.memberCountAtJoin);
           }
@@ -174,72 +177,85 @@ export const useJoinProgram = (
       } else if (hasPendingLocal) {
         setIsJoined(true);
         setFinalized(false);
-        setTxStatus('confirming');
+        setTxStatus("confirming");
         setLoading(true);
         onMemberCountRestore?.(pendingJoin.memberCountAtJoin);
-        registerMember(address, '');
+        registerMember(address, "");
       }
     } catch {
       if (addressRef.current !== address) return;
-      
+
       if (hasPendingLocal) {
         setIsJoined(true);
         setFinalized(false);
-        setTxStatus('confirming');
+        setTxStatus("confirming");
         setLoading(true);
         onMemberCountRestore?.(pendingJoin.memberCountAtJoin);
       }
     } finally {
       setCheckingMembership(false);
     }
-  }, [address, isConnected, onMemberCountRestore]);
+  }, [address, isConnected, onMemberCountRestore, varauthProgramId]);
 
   useEffect(() => {
     checkMembership();
   }, [checkMembership]);
 
   useEffect(() => {
-    if (isJoined && !finalized && txStatus === 'confirming' && publicClient && address) {
+    if (
+      isJoined &&
+      !finalized &&
+      txStatus === "confirming" &&
+      publicClient &&
+      address
+    ) {
       startWatchingFinalization();
     }
     return () => {
       unwatchRef.current?.();
       unwatchRef.current = null;
     };
-  }, [isJoined, finalized, txStatus, publicClient, startWatchingFinalization, address]);
+  }, [
+    isJoined,
+    finalized,
+    txStatus,
+    publicClient,
+    startWatchingFinalization,
+    address,
+  ]);
 
   const handleJoin = async () => {
     setError(null);
-    setTxStatus('idle');
+    setTxStatus("idle");
 
     if (!isConnected || !address) {
-      setError('Please connect wallet first');
+      setError("Please connect wallet first");
       return false;
     }
     if (!varauthProgramId) {
-      setError('Please authenticate with passkey first');
+      setError("Please authenticate with passkey first");
       return false;
     }
     if (!varaApi) {
-      setError('API not ready yet, please wait...');
+      setError("API not ready yet, please wait...");
       return false;
     }
     if (!sails) {
-      setError('Loading program interface...');
+      setError("Loading program interface...");
       return false;
     }
     if (!sailsAuth) {
-      setError('Loading auth program interface...');
+      setError("Loading auth program interface...");
       return false;
     }
 
     setLoading(true);
     setTxHash(null);
     setFinalized(false);
-    setTxStatus('signing');
+    setTxStatus("signing");
 
     try {
-        // const d32bytes = '0x' + '0xcb72581cbec72ece141fec7422e83b68f9e551df'.slice(2).padStart(64, '0');
+      // const d32bytes = '0x' + '0xcb72581cbec72ece141fec7422e83b68f9e551df'.slice(2).padStart(64, '0');
       // const isOneOfUsPayload = sails.services.OneOfUs.queries.IsOneOfUs.encodePayload(d32bytes);
       // console.log("🚀 ~ handleJoin ~ isOneOfUs:", isOneOfUsPayload)
       // const isOneOfUsReply = await varaApi.call.program.calculateReplyForHandle(address, '0xf3692291b8da827d3a39f6072720a79422401991', isOneOfUsPayload);
@@ -257,7 +273,7 @@ export const useJoinProgram = (
       const nonce = sailsAuth.services.Nonce.queries.NextNonce.decodeResult(
         nonceReply.payload
       );
-      console.log("🚀 ~ handleJoin ~ nonce:", nonce)
+      console.log("🚀 ~ handleJoin ~ nonce:", nonce);
 
       const joinPayload =
         sails.services.OneOfUs.functions.JoinUs.encodePayload();
@@ -265,31 +281,31 @@ export const useJoinProgram = (
 
       // Encode (payload, nonce, destination) per Scale-like layout and hash
       const payloadBytes = hexToBytes(joinPayload);
-      console.log("🚀 ~ handleJoin ~ payloadBytes:", payloadBytes)
-     
+      console.log("🚀 ~ handleJoin ~ payloadBytes:", payloadBytes);
+
       const nonceBytes = new Uint8Array(8);
       new DataView(nonceBytes.buffer).setBigUint64(0, BigInt(nonce), true);
-      console.log("🚀 ~ handleJoin ~ nonceBytes:", nonceBytes)
-      
+      console.log("🚀 ~ handleJoin ~ nonceBytes:", nonceBytes);
+
       const destinationBytes = hexToBytes(
         ("0x" + destinationId.slice(2).padStart(64, "0")) as `0x${string}`
       );
-      console.log("🚀 ~ handleJoin ~ destinationBytes:", destinationBytes)
+      console.log("🚀 ~ handleJoin ~ destinationBytes:", destinationBytes);
 
       const encodedForSign = concat([
         compactAddLength(payloadBytes),
         nonceBytes,
         destinationBytes,
       ]);
-      console.log("🚀 ~ handleJoin ~ encodedForSign:", encodedForSign)
+      console.log("🚀 ~ handleJoin ~ encodedForSign:", encodedForSign);
       const hashToSign = sha256(encodedForSign);
-      console.log("🚀 ~ handleJoin ~ hashToSign:", hashToSign)
+      console.log("🚀 ~ handleJoin ~ hashToSign:", hashToSign);
 
       const result = await openPasskeySignPopupAndWait(hashToSign);
       const { signature, credential_id, authenticator_data, id } = result;
 
       if (id !== hashToSign) {
-        throw new Error('Invalid id in passkey signature');
+        throw new Error("Invalid id in passkey signature");
       }
 
       console.log("Passkey result:", result);
@@ -301,7 +317,7 @@ export const useJoinProgram = (
           joinPayload,
           nonce,
           destination32bytes,
-          'https://passkey.mithriy.com',
+          "https://passkey.mithriy.com",
           authenticator_data,
           signature
         );
@@ -317,30 +333,34 @@ export const useJoinProgram = (
       console.log("🚀 ~ handleJoin ~ sendResult:", sendResult);
 
       setIsJoined(true);
-      setTxStatus('confirming');
+      setTxStatus("confirming");
       setFinalized(false);
 
       const newCount = currentMemberCount + 1;
       savePendingJoin(address, newCount);
       onMemberCountRestore?.(newCount);
 
-      registerMember(address, '');
+      registerMember(address, "");
       startWatchingFinalization();
 
       return true;
     } catch (e: any) {
-      setTxStatus('error');
-      console.error('Error:', e);
+      setTxStatus("error");
+      console.error("Error:", e);
 
-      if (e?.code === 4001 || e?.message?.includes('rejected') || e?.message?.includes('denied')) {
-        setError('Transaction cancelled by user');
-      } else if (e?.message?.includes('already')) {
-        setError('You are already a member!');
+      if (
+        e?.code === 4001 ||
+        e?.message?.includes("rejected") ||
+        e?.message?.includes("denied")
+      ) {
+        setError("Transaction cancelled by user");
+      } else if (e?.message?.includes("already")) {
+        setError("You are already a member!");
         setIsJoined(true);
-      } else if (e?.message?.includes('insufficient')) {
-        setError('Insufficient funds for transaction');
+      } else if (e?.message?.includes("insufficient")) {
+        setError("Insufficient funds for transaction");
       } else {
-        setError('Something went wrong. Please try again.');
+        setError("Something went wrong. Please try again.");
       }
       setLoading(false);
       return false;
@@ -349,7 +369,7 @@ export const useJoinProgram = (
 
   const clearError = () => {
     setError(null);
-    setTxStatus('idle');
+    setTxStatus("idle");
   };
 
   return {
