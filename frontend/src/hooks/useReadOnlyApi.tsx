@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
-import { VaraEthApi, HttpVaraEthProvider, WsVaraEthProvider } from '@vara-eth/api';
+import {
+  HttpVaraEthProvider,
+  WsVaraEthProvider,
+  createVaraEthApi,
+} from '@vara-eth/api';
+import type { VaraEthApi } from '@vara-eth/api';
+import { createPublicClient, defineChain, http } from 'viem';
 import { ENV } from '../config/env';
+import { HOODI_CHAIN_ID, HOODI_RPC_URL } from '../config/constants';
 
 export const useReadOnlyApi = () => {
   const [api, setApi] = useState<VaraEthApi | null>(null);
@@ -14,6 +21,18 @@ export const useReadOnlyApi = () => {
 
     const init = async () => {
       try {
+        const chain = defineChain({
+          id: HOODI_CHAIN_ID,
+          name: 'Hoodi Testnet',
+          nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
+          rpcUrls: { default: { http: [HOODI_RPC_URL] } },
+          testnet: true,
+        });
+        const publicClient = createPublicClient({
+          chain,
+          transport: http(HOODI_RPC_URL),
+        });
+
         const provider = ENV.VARA_ETH_WS
           ? new WsVaraEthProvider(ENV.VARA_ETH_WS as `ws://${string}` | `wss://${string}`)
           : new HttpVaraEthProvider(ENV.VARA_ETH_HTTP as `http://${string}` | `https://${string}`);
@@ -22,7 +41,11 @@ export const useReadOnlyApi = () => {
           await provider.connect();
         }
 
-        currentApi = new VaraEthApi(provider, null as any);
+        currentApi = await createVaraEthApi(
+          provider,
+          publicClient,
+          ENV.ROUTER_ADDRESS
+        );
 
         if (mounted) {
           setApi(currentApi);

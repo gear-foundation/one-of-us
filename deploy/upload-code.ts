@@ -1,8 +1,17 @@
 import { readFileSync } from 'fs';
-import { createPublicClient, createWalletClient, http } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  defineChain,
+  encodeFunctionData,
+  keccak256,
+  toBlobs,
+  bytesToHex,
+  hexToBytes,
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { defineChain } from 'viem';
-import { EthereumClient } from '@vara-eth/api';
+import { loadKZG } from 'kzg-wasm';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -10,6 +19,24 @@ import {
   WASM_PATH,
   HOODI_CHAIN_ID,
 } from './config.ts';
+
+const ROUTER_ABI = [
+  {
+    type: 'function',
+    name: 'requestCodeValidation',
+    inputs: [{ name: 'codeId', type: 'bytes32' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'event',
+    name: 'CodeGotValidated',
+    inputs: [
+      { name: 'codeId', type: 'bytes32', indexed: false },
+      { name: 'valid', type: 'bool', indexed: true },
+    ],
+  },
+] as const;
 
 const hoodi = defineChain({
   id: HOODI_CHAIN_ID,
@@ -46,57 +73,88 @@ async function main() {
     process.exit(1);
   }
 
-  const ethereumClient = new EthereumClient(
-    publicClient,
-    walletClient,
-    ROUTER_ADDRESS
-  );
-  await ethereumClient.isInitialized;
-  const router = ethereumClient.router;
-
   console.log('\nReading WASM file...');
   const wasmCode = readFileSync(WASM_PATH);
   console.log('WASM size:', wasmCode.length, 'bytes');
 
-  console.log('\nRequesting code validation...');
-  console.log('This may take several minutes...');
-  console.log('(Preparing blob transaction...)\n');
-
   const codeBytes = new Uint8Array(wasmCode);
-  const codeHex = `0x${wasmCode.toString('hex')}` as `0x${string}`;
+  const codeId = keccak256(codeBytes) as `0x${string}`;
+  console.log('Code ID:', codeId);
 
-  // Suppress verbose transaction logging from library
-  const originalLog = console.log;
-  console.log = () => {};
+  console.log('\nLoading KZG...');
+  const kzgRaw = await loadKZG();
+  const kzg = {
+    blobToKzgCommitment: (blob: Uint8Array) =>
+      hexToBytes(kzgRaw.blobToKzgCommitment(bytesToHex(blob))),
+    computeBlobKzgProof: (blob: Uint8Array, commitment: Uint8Array) =>
+      hexToBytes(
+        kzgRaw.computeBlobKZGProof(bytesToHex(blob), bytesToHex(commitment))
+      ),
+  } as any;
 
-  const tx = await router.requestCodeValidation(codeBytes);
-  const receipt = await tx.sendAndWaitForReceipt();
+  console.log('\nPreparing blob transaction...');
+  const blobs = toBlobs({ data: codeBytes });
+  console.log('Blobs count:', blobs.length);
 
-  console.log = originalLog;
+  const blobBaseFee = await publicClient.getBlobBaseFee();
+  const maxFeePerBlobGas = blobBaseFee * 2n;
 
+  const callData = encodeFunctionData({
+    abi: ROUTER_ABI,
+    functionName: 'requestCodeValidation',
+    args: [codeId],
+  });
+
+  console.log('\nRequesting code validation (blob tx)...');
+  console.log('This may take several minutes...');
+
+  const txHash = await walletClient.sendTransaction({
+    to: ROUTER_ADDRESS,
+    data: callData,
+    blobs,
+    kzg,
+    maxFeePerBlobGas,
+  });
+
+  console.log('Transaction sent:', txHash);
+  console.log('Waiting for confirmation...');
+
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
   console.log('✓ Transaction confirmed:', receipt.transactionHash);
+  console.log('Block:', receipt.blockNumber);
 
-  console.log('\nWaiting for validation...');
-  const validated = await tx.waitForCodeGotValidated();
+  console.log('\nWaiting for CodeGotValidated event...');
+
+  const validated = await new Promise<boolean>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      unwatch();
+      reject(new Error('Timeout waiting for CodeGotValidated event'));
+    }, 10 * 60 * 1000);
+
+    const unwatch = publicClient.watchContractEvent({
+      address: ROUTER_ADDRESS,
+      abi: ROUTER_ABI,
+      eventName: 'CodeGotValidated',
+      onLogs: (logs) => {
+        for (const log of logs) {
+          if ((log.args as any).codeId?.toLowerCase() === codeId.toLowerCase()) {
+            clearTimeout(timeout);
+            unwatch();
+            resolve((log.args as any).valid === true);
+          }
+        }
+      },
+      onError: (err) => {
+        clearTimeout(timeout);
+        unwatch();
+        reject(err);
+      },
+    });
+  });
 
   if (!validated) {
     throw new Error('Code validation failed');
   }
-
-  const codeId = (await publicClient.readContract({
-    address: ROUTER_ADDRESS,
-    abi: [
-      {
-        inputs: [{ name: 'code', type: 'bytes' }],
-        name: 'codeId',
-        outputs: [{ name: '', type: 'bytes32' }],
-        stateMutability: 'pure',
-        type: 'function',
-      },
-    ],
-    functionName: 'codeId',
-    args: [codeHex],
-  })) as `0x${string}`;
 
   console.log('\n✓ Code validated');
   console.log('Code ID:', codeId);

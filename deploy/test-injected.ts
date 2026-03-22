@@ -6,7 +6,8 @@ import {
   defineChain,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { EthereumClient, VaraEthApi, WsVaraEthProvider } from '@vara-eth/api';
+import { WsVaraEthProvider, createVaraEthApi } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import { Sails } from 'sails-js';
 import { SailsIdlParser } from 'sails-js-parser';
 import {
@@ -37,20 +38,18 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  const ethereumClient = new EthereumClient(
-    publicClient,
-    walletClient,
-    ROUTER_ADDRESS
-  );
-  await ethereumClient.isInitialized;
-
   console.log('Account:', account.address);
   console.log('Program:', PROGRAM_ID);
 
   const provider = new WsVaraEthProvider(
     VARA_ETH_WS as `ws://${string}` | `wss://${string}`
   );
-  const api = new VaraEthApi(provider, ethereumClient);
+  const api = await createVaraEthApi(
+    provider,
+    publicClient,
+    ROUTER_ADDRESS,
+    walletClientToSigner(walletClient)
+  );
 
   // Connect WebSocket provider
   await provider.connect();

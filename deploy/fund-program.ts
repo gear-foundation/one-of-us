@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
 import { EthereumClient, getMirrorClient } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -43,14 +44,15 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
+  const signer = walletClientToSigner(walletClient);
   const ethereumClient = new EthereumClient(
     publicClient,
-    walletClient,
-    ROUTER_ADDRESS
+    ROUTER_ADDRESS,
+    signer
   );
-  await ethereumClient.isInitialized;
+  await ethereumClient.waitForInitialization();
   const wvara = ethereumClient.wvara;
-  const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
+  const mirror = getMirrorClient({ address: PROGRAM_ID, publicClient, signer });
 
   const wvaraBalance = await wvara.balanceOf(account.address);
   console.log('wVARA balance:', wvaraBalance.toString());

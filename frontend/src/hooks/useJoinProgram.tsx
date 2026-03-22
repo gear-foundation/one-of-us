@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { VaraEthApi } from '@vara-eth/api';
+import type { VaraEthApi } from '@vara-eth/api';
 import { Sails } from 'sails-js';
 import { type PublicClient } from 'viem';
 import { ENV } from '../config/env';

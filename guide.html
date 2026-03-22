@@ -633,7 +633,7 @@ cargo build -p ethexe-cli -r</code></pre>
       <h3>Upload the WASM</h3>
       <pre data-lang="bash"><code>./target/release/ethexe --cfg none tx \
   --ethereum-rpc <span class="string">"wss://hoodi-reth-rpc.gear-tech.io/ws"</span> \
-  --ethereum-router <span class="string">"0xBC888a8B050B9B76a985d91c815d2c4f2131a58A"</span> \
+  --ethereum-router <span class="string">"0xE549b0AfEdA978271FF7E712232B9F7f39A0b060"</span> \
   --sender <span class="string">"$SENDER_ADDRESS"</span> \
   upload sources/one_of_us.opt.wasm -w</code></pre>
 
@@ -668,13 +668,13 @@ cd one-of-us</code></pre>
       <p>Open <code>.env</code> and fill in the required values:</p>
 
       <pre data-lang="env"><code><span class="comment"># Pre-configured for Hoodi testnet</span>
-ROUTER_ADDRESS=<span class="string">0xBC888a8B050B9B76a985d91c815d2c4f2131a58A</span>
-WVARA_ADDRESS=<span class="string">0x2C960bd5347C2Eb4d9bBEA0CB9671C5b641Dcbb9</span>
+ROUTER_ADDRESS=<span class="string">0xE549b0AfEdA978271FF7E712232B9F7f39A0b060</span>
+WVARA_ADDRESS=<span class="string">0xE1ab85A8B4d5d5B6af0bbD0203EB322DF33d0464</span>
 
 <span class="comment"># RPC endpoints (Hoodi)</span>
 ETH_RPC=<span class="string">https://hoodi-reth-rpc.gear-tech.io</span>
 ETH_RPC_WS=<span class="string">wss://hoodi-reth-rpc.gear-tech.io/ws</span>
-VARA_ETH_WS=<span class="string">ws://vara-eth-validator-1.gear-tech.io:9944</span>
+VARA_ETH_WS=<span class="string">wss://hoodi-reth-rpc.gear-tech.io/ws</span>
 
 <span class="comment"># Your credentials</span>
 PRIVATE_KEY=<span class="string">0x...</span>           <span class="comment"># Your Ethereum private key</span>

@@ -81,7 +81,7 @@ cargo build -p ethexe-cli -r
 ```bash
 ./target/release/ethexe --cfg none tx \
   --ethereum-rpc "wss://hoodi-reth-rpc.gear-tech.io/ws" \
-  --ethereum-router "0xBC888a8B050B9B76a985d91c815d2c4f2131a58A" \
+  --ethereum-router "0xE549b0AfEdA978271FF7E712232B9F7f39A0b060" \
   --sender "$SENDER_ADDRESS" \
   upload sources/one_of_us.opt.wasm -w
 ```
@@ -116,13 +116,13 @@ Open `.env` and fill in the required values:
 
 ```bash
 # Pre-configured for Hoodi testnet
-ROUTER_ADDRESS=0xBC888a8B050B9B76a985d91c815d2c4f2131a58A
-WVARA_ADDRESS=0x2C960bd5347C2Eb4d9bBEA0CB9671C5b641Dcbb9
+ROUTER_ADDRESS=0xE549b0AfEdA978271FF7E712232B9F7f39A0b060
+WVARA_ADDRESS=0xE1ab85A8B4d5d5B6af0bbD0203EB322DF33d0464
 
 # RPC endpoints (Hoodi)
 ETH_RPC=https://hoodi-reth-rpc.gear-tech.io
 ETH_RPC_WS=wss://hoodi-reth-rpc.gear-tech.io/ws
-VARA_ETH_WS=ws://vara-eth-validator-1.gear-tech.io:9944
+VARA_ETH_WS=wss://hoodi-reth-rpc.gear-tech.io/ws
 
 # Your credentials
 PRIVATE_KEY=0x...           # Your Ethereum private key

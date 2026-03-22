@@ -8,13 +8,9 @@ interface IOneOfUs {
 
     function oneOfUsCount(uint128 _value, bool _callReply) external returns (bytes32 messageId);
 
-    function oneOfUsIsOneOfUs(uint128 _value, bool _callReply, uint16[16] calldata addr)
-        external
-        returns (bytes32 messageId);
+    function oneOfUsIsOneOfUs(uint128 _value, bool _callReply, bytes32 addr) external returns (bytes32 messageId);
 
-    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize)
-        external
-        returns (bytes32 messageId);
+    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize) external returns (bytes32 messageId);
 
     function oneOfUsVersion(uint128 _value, bool _callReply) external returns (bytes32 messageId);
 }
@@ -26,15 +22,9 @@ contract OneOfUsAbi is IOneOfUs {
 
     function oneOfUsCount(uint128 _value, bool _callReply) external returns (bytes32 messageId) {}
 
-    function oneOfUsIsOneOfUs(uint128 _value, bool _callReply, uint16[16] calldata addr)
-        external
-        returns (bytes32 messageId)
-    {}
+    function oneOfUsIsOneOfUs(uint128 _value, bool _callReply, bytes32 addr) external returns (bytes32 messageId) {}
 
-    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize)
-        external
-        returns (bytes32 messageId)
-    {}
+    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize) external returns (bytes32 messageId) {}
 
     function oneOfUsVersion(uint128 _value, bool _callReply) external returns (bytes32 messageId) {}
 }
@@ -48,7 +38,7 @@ interface IOneOfUsCallbacks {
 
     function replyOn_oneOfUsIsOneOfUs(bytes32 messageId, bool reply) external;
 
-    function replyOn_oneOfUsList(bytes32 messageId, uint16[16][] memory reply) external;
+    function replyOn_oneOfUsList(bytes32 messageId, bytes32[] calldata reply) external;
 
     function replyOn_oneOfUsVersion(bytes32 messageId, uint32 reply) external;
 
@@ -83,7 +73,7 @@ contract OneOfUsCaller is IOneOfUsCallbacks {
         // TODO: implement this
     }
 
-    function replyOn_oneOfUsList(bytes32 messageId, uint16[16][] memory reply) external onlyGearExeProgram {
+    function replyOn_oneOfUsList(bytes32 messageId, bytes32[] calldata reply) external onlyGearExeProgram {
         // TODO: implement this
     }
 

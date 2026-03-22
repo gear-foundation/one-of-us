@@ -3,6 +3,7 @@ import { createPublicClient, createWalletClient, http, webSocket } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
 import { EthereumClient, getMirrorClient } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import { Sails } from 'sails-js';
 import { SailsIdlParser } from 'sails-js-parser';
 import {
@@ -48,13 +49,14 @@ async function main() {
     transport,
   });
 
+  const signer = walletClientToSigner(walletClient);
   const ethereumClient = new EthereumClient(
     publicClient,
-    walletClient,
-    ROUTER_ADDRESS
+    ROUTER_ADDRESS,
+    signer
   );
-  await ethereumClient.isInitialized;
-  const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
+  await ethereumClient.waitForInitialization();
+  const mirror = getMirrorClient({ address: PROGRAM_ID, publicClient, signer });
 
   console.log('\nInitializing program...');
 
