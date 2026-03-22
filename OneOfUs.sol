@@ -10,7 +10,9 @@ interface IOneOfUs {
 
     function oneOfUsIsOneOfUs(uint128 _value, bool _callReply, bytes32 addr) external returns (bytes32 messageId);
 
-    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize) external returns (bytes32 messageId);
+    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize)
+        external
+        returns (bytes32 messageId);
 
     function oneOfUsVersion(uint128 _value, bool _callReply) external returns (bytes32 messageId);
 }
@@ -24,7 +26,10 @@ contract OneOfUsAbi is IOneOfUs {
 
     function oneOfUsIsOneOfUs(uint128 _value, bool _callReply, bytes32 addr) external returns (bytes32 messageId) {}
 
-    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize) external returns (bytes32 messageId) {}
+    function oneOfUsList(uint128 _value, bool _callReply, uint32 page, uint32 pageSize)
+        external
+        returns (bytes32 messageId)
+    {}
 
     function oneOfUsVersion(uint128 _value, bool _callReply) external returns (bytes32 messageId) {}
 }
