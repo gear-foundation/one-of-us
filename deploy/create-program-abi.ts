@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
 import { EthereumClient } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -91,10 +92,10 @@ async function main() {
   console.log('Initializing client...');
   const ethereumClient = new EthereumClient(
     publicClient,
-    walletClient,
-    ROUTER_ADDRESS
+    ROUTER_ADDRESS,
+    walletClientToSigner(walletClient)
   );
-  await ethereumClient.isInitialized;
+  await ethereumClient.waitForInitialization();
 
   console.log('Sending transaction...');
   const tx = await ethereumClient.router.createProgramWithAbiInterface(

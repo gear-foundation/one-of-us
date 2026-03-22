@@ -20,14 +20,14 @@
   "type": "module",
   "dependencies": {
     "@types/node": "^24.10.1",
-    "@vara-eth/api": "^0.1.1",
+    "@vara-eth/api": "^0.3.0",
     "dotenv": "^17.2.3",
     "kzg-wasm": "^1.0.0",
     "sails-js": "^0.5.1",
     "sails-js-parser": "^0.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "viem": "^2.40.2"
+    "viem": "^2.47.6"
   },
   "devDependencies": {
     "solc": "^0.8.30"

@@ -1,15 +1,11 @@
 #![no_std]
+#![allow(static_mut_refs)]
 
-use core::cell::{Ref, RefMut};
-use sails_rs::{cell::RefCell, collections::BTreeSet, gstd::msg, prelude::*};
+use sails_rs::{collections::BTreeSet, gstd::msg, prelude::*};
 
 const PROGRAM_VERSION: u32 = 8;
 
-struct SyncRefCell<T>(RefCell<T>);
-unsafe impl<T> Sync for SyncRefCell<T> {}
-
-// State for the program
-static STATE: SyncRefCell<Option<OneOfUsState>> = SyncRefCell(RefCell::new(None));
+static mut STATE: Option<OneOfUsState> = None;
 
 #[derive(Clone, Default)]
 pub struct OneOfUsState {
@@ -18,20 +14,30 @@ pub struct OneOfUsState {
 }
 
 impl OneOfUsState {
-    pub fn get() -> Ref<'static, Self> {
-        Ref::map(STATE.0.borrow(), |opt| opt.as_ref().expect("State not initialized"))
+    fn get() -> &'static Self {
+        unsafe { STATE.as_ref().expect("State not initialized") }
     }
 
-    pub fn get_mut() -> RefMut<'static, Self> {
-        RefMut::map(STATE.0.borrow_mut(), |opt| opt.as_mut().expect("State not initialized"))
+    fn get_mut() -> &'static mut Self {
+        unsafe { STATE.as_mut().expect("State not initialized") }
     }
 
-    pub fn init() {
-        let mut state = STATE.0.borrow_mut();
-        if state.is_some() {
-            panic!("State already initialized");
+    fn init() {
+        unsafe {
+            if STATE.is_some() {
+                panic!("State already initialized");
+            }
+            STATE = Some(Self::default());
         }
-        *state = Some(Self::default());
+    }
+
+    fn is_registered(&self, actor: &ActorId) -> bool {
+        self.registered.contains(actor)
+    }
+
+    fn register(&mut self, actor: ActorId) {
+        self.builders.push(actor);
+        self.registered.insert(actor);
     }
 }
 
@@ -50,14 +56,13 @@ impl OneOfUsService {
     #[export]
     pub fn join_us(&mut self) -> bool {
         let sender = msg::source();
-        let mut state = OneOfUsState::get_mut();
+        let state = OneOfUsState::get_mut();
 
-        if state.registered.contains(&sender) {
+        if state.is_registered(&sender) {
             return false;
         }
 
-        state.builders.push(sender);
-        state.registered.insert(sender);
+        state.register(sender);
         true
     }
 
@@ -68,7 +73,7 @@ impl OneOfUsService {
 
     #[export]
     pub fn is_one_of_us(&self, addr: ActorId) -> bool {
-        OneOfUsState::get().registered.contains(&addr)
+        OneOfUsState::get().is_registered(&addr)
     }
 
     #[export]

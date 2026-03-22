@@ -10,6 +10,8 @@ export const ROUTER_ADDRESS = process.env.ROUTER_ADDRESS as `0x${string}`;
 export const WVARA_ADDRESS = process.env.WVARA_ADDRESS as `0x${string}`;
 export const VARA_ETH_WS =
   process.env.VARA_ETH_WS || 'wss://vara-eth-validator-1.gear-tech.io';
+export const VARA_ETH_HTTP =
+  process.env.VARA_ETH_HTTP || 'https://vara-eth-validator-1.gear-tech.io';
 export const ETH_RPC = process.env.ETH_RPC!;
 export const ETH_RPC_WS =
   process.env.ETH_RPC_WS || 'wss://hoodi-reth-rpc.gear-tech.io/ws';

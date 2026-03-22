@@ -7,12 +7,12 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import {
-  EthereumClient,
-  VaraEthApi,
   WsVaraEthProvider,
   HttpVaraEthProvider,
   getMirrorClient,
+  createVaraEthApi,
 } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import { Sails } from 'sails-js';
 import { SailsIdlParser } from 'sails-js-parser';
 import {
@@ -57,13 +57,8 @@ async function main() {
     transport: http(ETH_RPC),
   });
 
-  const ethereumClient = new EthereumClient(
-    publicClient,
-    walletClient,
-    ROUTER_ADDRESS
-  );
-  await ethereumClient.isInitialized;
-  const mirror = getMirrorClient(PROGRAM_ID, walletClient, publicClient);
+  const signer = walletClientToSigner(walletClient);
+  const mirror = getMirrorClient({ address: PROGRAM_ID, publicClient, signer });
 
   let provider: WsVaraEthProvider | HttpVaraEthProvider;
   
@@ -77,7 +72,12 @@ async function main() {
     provider = new HttpVaraEthProvider(VARA_ETH_HTTP as `http://${string}` | `https://${string}`);
   }
   
-  const api = new VaraEthApi(provider, ethereumClient);
+  const api = await createVaraEthApi(
+    provider,
+    publicClient,
+    ROUTER_ADDRESS,
+    signer
+  );
 
   // Get the current state hash from Ethereum (Mirror contract)
   const stateHash = await mirror.stateHash();

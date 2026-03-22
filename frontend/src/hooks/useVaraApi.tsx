@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { VaraEthApi, HttpVaraEthProvider, WsVaraEthProvider, EthereumClient } from '@vara-eth/api';
+import {
+  HttpVaraEthProvider,
+  WsVaraEthProvider,
+  EthereumClient,
+  createVaraEthApi,
+} from '@vara-eth/api';
+import type { VaraEthApi } from '@vara-eth/api';
 import { ENV } from '../config/env';
 
 export const useVaraApi = (ethereumClient: EthereumClient | null, isConnected: boolean) => {
@@ -32,7 +38,12 @@ export const useVaraApi = (ethereumClient: EthereumClient | null, isConnected: b
           await provider.connect();
         }
 
-        currentApi = new VaraEthApi(provider, ethereumClient);
+        currentApi = await createVaraEthApi(
+          provider,
+          ethereumClient.publicClient,
+          ENV.ROUTER_ADDRESS,
+          ethereumClient.signer
+        );
 
         if (mounted) {
           setVaraApi(currentApi);

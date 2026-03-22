@@ -17,7 +17,7 @@ export const ENV = {
   VARA_ETH_WS: required('VITE_VARA_ETH_WS'),
   VARA_ETH_HTTP: optional(
     'VITE_VARA_ETH_HTTP',
-    'https://hoodi-reth-rpc.gear-tech.io'
+    'https://vara-eth-validator-1.gear-tech.io'
   ),
   API_URL: optional('VITE_API_URL', 'http://localhost:3001'),
 } as const;

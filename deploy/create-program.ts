@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { defineChain } from 'viem';
 import { EthereumClient } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import {
   PRIVATE_KEY,
   ROUTER_ADDRESS,
@@ -43,10 +44,10 @@ async function main() {
 
   const ethereumClient = new EthereumClient(
     publicClient,
-    walletClient,
-    ROUTER_ADDRESS
+    ROUTER_ADDRESS,
+    walletClientToSigner(walletClient)
   );
-  await ethereumClient.isInitialized;
+  await ethereumClient.waitForInitialization();
   const router = ethereumClient.router;
 
   console.log('\nCreating program...');

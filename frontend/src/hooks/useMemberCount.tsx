@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { VaraEthApi } from '@vara-eth/api';
+import type { VaraEthApi } from '@vara-eth/api';
 import { Sails } from 'sails-js';
 import { ENV } from '../config/env';
 import { MEMBER_COUNT_REFRESH_MS, ZERO_ADDRESS } from '../config/constants';

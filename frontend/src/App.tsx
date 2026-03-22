@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { EthereumClient } from '@vara-eth/api';
+import { walletClientToSigner } from '@vara-eth/api/signer';
 import './App.css';
 
 import { useWallet } from './hooks/useWallet';
@@ -40,8 +41,8 @@ function App() {
     const currentAddress = wallet.address;
     let cancelled = false;
     
-    const client = new EthereumClient(wallet.publicClient, wallet.walletClient, ENV.ROUTER_ADDRESS);
-    client.isInitialized.then(() => {
+    const client = new EthereumClient(wallet.publicClient, ENV.ROUTER_ADDRESS, walletClientToSigner(wallet.walletClient));
+    client.waitForInitialization().then(() => {
       if (!cancelled && wallet.address === currentAddress) {
         setEthereumClient(client);
       }
