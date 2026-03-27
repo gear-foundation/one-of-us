@@ -79,13 +79,26 @@ async function main() {
 
   console.log('Waiting for reply...');
   const reply = await waitForReply();
-  console.log('Reply received:', reply);
 
-  // Decode result
+  console.log('Reply received:', reply);
+  console.log('Reply code:', reply.replyCode);
+  console.log('Reply payload:', reply.payload);
+
+  if (reply.payload === '0x') {
+    console.log('\nReply payload is empty.');
+    console.log('This means there is nothing to decode.');
+    console.log('Check state separately with: npm run state');
+    process.exit(0);
+  }
+
   const result = sails.services.OneOfUs.functions.JoinUs.decodeResult(
-    reply.payload
+    reply.payload as `0x${string}`
   );
-  console.log('\n✓ Result:', result);
+
+  console.log('\nDecoded result:', result);
+  console.log('Now verify persisted state with: npm run state');
+
+  process.exit(0);
 }
 
 main().catch((error) => {
