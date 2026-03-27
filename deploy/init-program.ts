@@ -81,6 +81,7 @@ async function main() {
 
   console.log('✓ Program initialized');
   console.log('Next: npm run classic or npm run injected');
+  process.exit(0);
 }
 
 main().catch((error) => {

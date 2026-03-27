@@ -69,11 +69,34 @@ async function main() {
     value: 0n,
   });
 
-  console.log('Sending...');
-  const result = await injected.sendAndWaitForPromise();
-  console.log('Done!', result);
+  console.log('Sending injected transaction...');
+  const promise = await injected.sendAndWaitForPromise();
+
+  console.log('Raw injected response:', promise);
+
+  await promise.validateSignature();
+  console.log('Signature is valid');
+
+  console.log('Reply code:', promise.code);
+  console.log('Reply payload:', promise.payload);
+
+  if (promise.payload === '0x') {
+    console.log('Empty payload, nothing to decode');
+    console.log('State may appear later on L1. Check with: npm run state');
+    await api.provider.disconnect?.();
+    process.exit(0);
+  }
+
+  const result = sails.services.OneOfUs.functions.JoinUs.decodeResult(
+    promise.payload as `0x${string}`
+  );
+
+  console.log('Decoded result:', result);
+  console.log('Note: injected gives pre-confirmation first, state may appear later.');
+  console.log('Check with: npm run state');
 
   await api.provider.disconnect?.();
+  process.exit(0);
 }
 
 main().catch(console.error);
