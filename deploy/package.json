@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "upload": "ts-node upload-code.ts",
+    "upload:api": "ts-node upload-code-api.ts",
+    "upload:alt": "ts-node upload-code-api.ts",
     "create": "ts-node create-program.ts",
     "compile:sol": "ts-node compile-sol.ts",
     "create:abi": "ts-node create-program-abi.ts",
