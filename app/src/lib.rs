@@ -3,7 +3,7 @@
 
 use sails_rs::{collections::BTreeSet, gstd::msg, prelude::*};
 
-const PROGRAM_VERSION: u32 = 8;
+const PROGRAM_VERSION: u32 = 10;
 
 static mut STATE: Option<OneOfUsState> = None;
 
@@ -35,9 +35,14 @@ impl OneOfUsState {
         self.registered.contains(actor)
     }
 
-    fn register(&mut self, actor: ActorId) {
-        self.builders.push(actor);
-        self.registered.insert(actor);
+    fn register(&mut self, actor: ActorId) -> bool {
+        if self.registered.insert(actor) {
+            self.builders.push(actor);
+            debug_assert_eq!(self.builders.len(), self.registered.len());
+            return true;
+        }
+
+        false
     }
 }
 
@@ -57,18 +62,12 @@ impl OneOfUsService {
     pub fn join_us(&mut self) -> bool {
         let sender = msg::source();
         let state = OneOfUsState::get_mut();
-
-        if state.is_registered(&sender) {
-            return false;
-        }
-
-        state.register(sender);
-        true
+        state.register(sender)
     }
 
     #[export]
     pub fn count(&self) -> u32 {
-        OneOfUsState::get().builders.len() as u32
+        OneOfUsState::get().registered.len() as u32
     }
 
     #[export]
