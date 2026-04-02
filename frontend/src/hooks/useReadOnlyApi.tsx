@@ -7,7 +7,7 @@ import {
 import type { VaraEthApi } from '@vara-eth/api';
 import { createPublicClient, defineChain, http } from 'viem';
 import { ENV } from '../config/env';
-import { HOODI_CHAIN_ID, HOODI_RPC_URL } from '../config/constants';
+import { TARGET_CHAIN_ID, TARGET_NETWORK_NAME, TARGET_RPC_URL } from '../config/constants';
 
 export const useReadOnlyApi = () => {
   const [api, setApi] = useState<VaraEthApi | null>(null);
@@ -22,15 +22,14 @@ export const useReadOnlyApi = () => {
     const init = async () => {
       try {
         const chain = defineChain({
-          id: HOODI_CHAIN_ID,
-          name: 'Hoodi Testnet',
+          id: TARGET_CHAIN_ID,
+          name: TARGET_NETWORK_NAME,
           nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
-          rpcUrls: { default: { http: [HOODI_RPC_URL] } },
-          testnet: true,
+          rpcUrls: { default: { http: [TARGET_RPC_URL] } },
         });
         const publicClient = createPublicClient({
           chain,
-          transport: http(HOODI_RPC_URL),
+          transport: http(TARGET_RPC_URL),
         });
 
         const provider = ENV.VARA_ETH_WS

@@ -1,5 +1,9 @@
 import { ENV } from '../../config/env';
-import { GITHUB_REPO_URL, getAddressExplorerUrl } from '../../config/constants';
+import {
+  GITHUB_REPO_URL,
+  getAddressExplorerUrl,
+  TARGET_EXPLORER_LABEL,
+} from '../../config/constants';
 import './Footer.css';
 import moonImage from '../../img/moon.png';
 
@@ -17,7 +21,7 @@ export const Footer = () => {
             rel="noopener noreferrer"
             className="footer-link"
           >
-            Etherscan
+            {TARGET_EXPLORER_LABEL}
           </a>
           <a href="https://start.vara.network/" target="_blank" rel="noopener noreferrer" className="footer-link">
             Start with Vara.eth

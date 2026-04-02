@@ -16,18 +16,19 @@ import {
   VARA_ETH_WS,
   ROUTER_ADDRESS,
   PROGRAM_ID,
-  HOODI_CHAIN_ID,
+  CHAIN_ID,
+  CHAIN_NAME,
+  CHAIN_NETWORK_NAME,
   IDL_PATH,
 } from './config.ts';
 
 async function main() {
   const chain = defineChain({
-    id: HOODI_CHAIN_ID,
-    name: 'Hoodi',
-    network: 'hoodi',
+    id: CHAIN_ID,
+    name: CHAIN_NAME,
+    network: CHAIN_NETWORK_NAME,
     nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
     rpcUrls: { default: { http: [ETH_RPC] } },
-    testnet: true,
   });
 
   const account = privateKeyToAccount(PRIVATE_KEY);

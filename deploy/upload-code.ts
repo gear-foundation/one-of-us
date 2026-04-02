@@ -17,7 +17,9 @@ import {
   ROUTER_ADDRESS,
   ETH_RPC,
   WASM_PATH,
-  HOODI_CHAIN_ID,
+  CHAIN_ID,
+  CHAIN_NAME,
+  CHAIN_NETWORK_NAME,
 } from './config.ts';
 
 const ROUTER_ABI = [
@@ -39,15 +41,14 @@ const ROUTER_ABI = [
 ] as const;
 
 const hoodi = defineChain({
-  id: HOODI_CHAIN_ID,
-  name: 'Hoodi Testnet',
-  network: 'hoodi',
+  id: CHAIN_ID,
+  name: CHAIN_NAME,
+  network: CHAIN_NETWORK_NAME,
   nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
   rpcUrls: {
     default: { http: [ETH_RPC] },
     public: { http: [ETH_RPC] },
   },
-  testnet: true,
 });
 
 async function main() {
@@ -84,12 +85,17 @@ async function main() {
   console.log('\nLoading KZG...');
   const kzgRaw = await loadKZG();
   const kzg = {
-    blobToKzgCommitment: (blob: Uint8Array) =>
-      hexToBytes(kzgRaw.blobToKzgCommitment(bytesToHex(blob))),
-    computeBlobKzgProof: (blob: Uint8Array, commitment: Uint8Array) =>
-      hexToBytes(
-        kzgRaw.computeBlobKZGProof(bytesToHex(blob), bytesToHex(commitment))
-      ),
+    blobToKzgCommitment: (blob: Uint8Array) => {
+      const blobHex = bytesToHex(blob) as `0x${string}`;
+      const commitmentHex = kzgRaw.blobToKzgCommitment(blobHex) as `0x${string}`;
+      return hexToBytes(commitmentHex);
+    },
+    computeBlobKzgProof: (blob: Uint8Array, commitment: Uint8Array) => {
+      const blobHex = bytesToHex(blob) as `0x${string}`;
+      const commitmentHex = bytesToHex(commitment) as `0x${string}`;
+      const proofHex = kzgRaw.computeBlobKZGProof(blobHex, commitmentHex) as `0x${string}`;
+      return hexToBytes(proofHex);
+    },
   } as any;
 
   console.log('\nPreparing blob transaction...');

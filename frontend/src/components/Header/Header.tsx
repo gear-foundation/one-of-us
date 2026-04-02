@@ -7,6 +7,7 @@ interface HeaderProps {
   isConnecting: boolean;
   isMetaMaskInstalled: boolean;
   isCorrectNetwork: boolean;
+  targetNetworkName: string;
   error: string | null;
   onConnect: () => void;
   onDisconnect: () => void;
@@ -20,6 +21,7 @@ export const Header = ({
   isConnecting,
   isMetaMaskInstalled,
   isCorrectNetwork,
+  targetNetworkName,
   error,
   onConnect,
   onDisconnect,
@@ -38,9 +40,13 @@ export const Header = ({
             {chainId !== null && (
               <>
                 {isCorrectNetwork ? (
-                  <span className="network-badge">Hoodi ✓</span>
+                  <span className="network-badge">{targetNetworkName} ✓</span>
                 ) : (
-                  <button className="switch-network-btn" onClick={onSwitchNetwork} title="Switch to Hoodi Testnet">
+                  <button
+                    className="switch-network-btn"
+                    onClick={onSwitchNetwork}
+                    title={`Switch to ${targetNetworkName}`}
+                  >
                     ⚠️ Wrong Network
                   </button>
                 )}

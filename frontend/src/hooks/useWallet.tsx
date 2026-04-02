@@ -8,7 +8,14 @@ import {
   type WalletClient,
   type EIP1193Provider,
 } from 'viem';
-import { HOODI_CHAIN_ID_HEX, HOODI_NETWORK_PARAMS, HOODI_CHAIN_ID, HOODI_RPC_URL, HOODI_EXPLORER_URL } from '../config/constants';
+import {
+  TARGET_CHAIN_ID_HEX,
+  TARGET_NETWORK_PARAMS,
+  TARGET_CHAIN_ID,
+  TARGET_RPC_URL,
+  TARGET_EXPLORER_URL,
+  TARGET_NETWORK_NAME,
+} from '../config/constants';
 
 declare global {
   interface Window {
@@ -62,21 +69,20 @@ export function useWallet() {
     return !!eth?.isMetaMask;
   }, []);
 
-  const hoodiChain = useMemo(() => defineChain({
-    id: HOODI_CHAIN_ID,
-    name: 'Hoodi Testnet',
+  const targetChain = useMemo(() => defineChain({
+    id: TARGET_CHAIN_ID,
+    name: TARGET_NETWORK_NAME,
     nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
-    rpcUrls: { default: { http: [HOODI_RPC_URL] } },
-    blockExplorers: { default: { name: 'Etherscan', url: HOODI_EXPLORER_URL } },
-    testnet: true,
+    rpcUrls: { default: { http: [TARGET_RPC_URL] } },
+    blockExplorers: { default: { name: 'Explorer', url: TARGET_EXPLORER_URL } },
   }), []);
 
   const buildClients = useCallback((eth: EIP1193Provider, account: `0x${string}`) => {
     const transport = custom(eth);
-    const wc = createWalletClient({ account, chain: hoodiChain, transport });
-    const pc = createPublicClient({ chain: hoodiChain, transport });
+    const wc = createWalletClient({ account, chain: targetChain, transport });
+    const pc = createPublicClient({ chain: targetChain, transport });
     return { wc, pc };
-  }, [hoodiChain]);
+  }, [targetChain]);
 
   useEffect(() => {
     const eth = pickEthereumProvider();
@@ -253,7 +259,7 @@ export function useWallet() {
     setPublicClient(null);
   }, []);
 
-  const switchToHoodi = useCallback(async () => {
+  const switchToExpectedNetwork = useCallback(async () => {
     const eth = pickEthereumProvider();
     if (!eth) {
       setError('No wallet detected');
@@ -263,17 +269,17 @@ export function useWallet() {
     try {
       await eth.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: HOODI_CHAIN_ID_HEX }],
+        params: [{ chainId: TARGET_CHAIN_ID_HEX }],
       });
     } catch (switchError: any) {
       if (switchError?.code === 4902) {
         try {
           await eth.request({
             method: 'wallet_addEthereumChain',
-            params: [HOODI_NETWORK_PARAMS],
+            params: [TARGET_NETWORK_PARAMS],
           });
         } catch {
-          setError('Failed to add Hoodi network');
+          setError(`Failed to add ${TARGET_NETWORK_NAME} network`);
         }
       } else {
         setError('Failed to switch network');
@@ -290,7 +296,7 @@ export function useWallet() {
     isMetaMaskInstalled,
     connect,
     disconnect,
-    switchToHoodi,
+    switchToExpectedNetwork,
     walletClient,
     publicClient,
   };

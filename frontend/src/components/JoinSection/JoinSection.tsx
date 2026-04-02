@@ -1,5 +1,5 @@
 import './JoinSection.css';
-import { getTxExplorerUrl } from '../../config/constants';
+import { getTxExplorerUrl, TARGET_EXPLORER_LABEL } from '../../config/constants';
 import { TxStatus } from '../../hooks/useJoinProgram';
 
 interface JoinSectionProps {
@@ -113,7 +113,7 @@ export const JoinSection = ({
 
                 {txHash && (
                   <a href={getTxExplorerUrl(txHash)} target="_blank" rel="noopener noreferrer" className="tx-link">
-                    View on Etherscan →
+                    View on {TARGET_EXPLORER_LABEL} →
                   </a>
                 )}
               </div>

@@ -8,20 +8,21 @@ import {
   ROUTER_ADDRESS,
   ETH_RPC,
   PROGRAM_ID,
-  HOODI_CHAIN_ID,
+  CHAIN_ID,
+  CHAIN_NAME,
+  CHAIN_NETWORK_NAME,
   WVARA_TOP_UP_AMOUNT,
 } from './config.ts';
 
 const hoodi = defineChain({
-  id: HOODI_CHAIN_ID,
-  name: 'Hoodi Testnet',
-  network: 'hoodi',
+  id: CHAIN_ID,
+  name: CHAIN_NAME,
+  network: CHAIN_NETWORK_NAME,
   nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
   rpcUrls: {
     default: { http: [ETH_RPC] },
     public: { http: [ETH_RPC] },
   },
-  testnet: true,
 });
 
 async function main() {

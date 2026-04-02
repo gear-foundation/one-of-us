@@ -11,21 +11,22 @@ import {
   ROUTER_ADDRESS,
   ETH_RPC,
   CODE_ID,
-  HOODI_CHAIN_ID,
+  CHAIN_ID,
+  CHAIN_NAME,
+  CHAIN_NETWORK_NAME,
 } from './config.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const hoodi = defineChain({
-  id: HOODI_CHAIN_ID,
-  name: 'Hoodi Testnet',
-  network: 'hoodi',
+  id: CHAIN_ID,
+  name: CHAIN_NAME,
+  network: CHAIN_NETWORK_NAME,
   nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
   rpcUrls: {
     default: { http: [ETH_RPC] },
     public: { http: [ETH_RPC] },
   },
-  testnet: true,
 });
 
 function deployWithForge(): string {

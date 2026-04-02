@@ -12,13 +12,14 @@ import {
   ETH_RPC,
   ETH_RPC_WS,
   PROGRAM_ID,
-  HOODI_CHAIN_ID,
+  CHAIN_ID,
+  CHAIN_NAME,
   IDL_PATH,
 } from './config.ts';
 
 const hoodi = defineChain({
-  id: HOODI_CHAIN_ID,
-  name: 'Hoodi Testnet',
+  id: CHAIN_ID,
+  name: CHAIN_NAME,
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: {
     default: { http: [ETH_RPC], webSocket: [ETH_RPC_WS] },

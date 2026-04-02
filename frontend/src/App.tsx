@@ -8,7 +8,7 @@ import { useSails } from './hooks/useSails';
 import { useVaraApi } from './hooks/useVaraApi';
 import { useMemberCount } from './hooks/useMemberCount';
 import { useJoinProgram } from './hooks/useJoinProgram';
-import { isHoodiNetwork } from './config/constants';
+import { isExpectedNetwork, TARGET_NETWORK_NAME } from './config/constants';
 import { ENV } from './config/env';
 
 import {
@@ -27,7 +27,7 @@ function App() {
   const { sails, loading: sailsLoading, error: sailsError } = useSails();
 
   // Check if on correct network
-  const isCorrectNetwork = isHoodiNetwork(wallet.chainId);
+  const isCorrectNetwork = isExpectedNetwork(wallet.chainId);
 
   // Ethereum client setup
   const [ethereumClient, setEthereumClient] = useState<EthereumClient | null>(null);
@@ -95,10 +95,11 @@ function App() {
         isConnecting={wallet.isConnecting}
         isMetaMaskInstalled={wallet.isMetaMaskInstalled}
         isCorrectNetwork={isCorrectNetwork}
+        targetNetworkName={TARGET_NETWORK_NAME}
         error={wallet.error}
         onConnect={handleConnect}
         onDisconnect={wallet.disconnect}
-        onSwitchNetwork={wallet.switchToHoodi}
+        onSwitchNetwork={wallet.switchToExpectedNetwork}
       />
 
       <main className="main-content">
