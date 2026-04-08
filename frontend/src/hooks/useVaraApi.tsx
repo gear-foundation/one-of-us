@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  HttpVaraEthProvider,
   WsVaraEthProvider,
   EthereumClient,
   createVaraEthApi,
@@ -19,24 +18,15 @@ export const useVaraApi = (ethereumClient: EthereumClient | null, isConnected: b
       return;
     }
 
-    if (!ENV.VARA_ETH_HTTP && !ENV.VARA_ETH_WS) {
-      setVaraApi(null);
-      setIsReady(false);
-      return;
-    }
-
     let mounted = true;
     let currentApi: VaraEthApi | null = null;
+    let provider: WsVaraEthProvider | null = null;
 
     const init = async () => {
       try {
-        const provider = ENV.VARA_ETH_WS
-          ? new WsVaraEthProvider(ENV.VARA_ETH_WS as `ws://${string}` | `wss://${string}`)
-          : new HttpVaraEthProvider(ENV.VARA_ETH_HTTP as `http://${string}` | `https://${string}`);
-
-        if (provider instanceof WsVaraEthProvider) {
-          await provider.connect();
-        }
+        provider = new WsVaraEthProvider(ENV.VARA_ETH_WS);
+        await provider.connect();
+        console.log(`[useVaraApi] connected to ${ENV.VARA_ETH_WS}`);
 
         currentApi = await createVaraEthApi(
           provider,
@@ -49,7 +39,8 @@ export const useVaraApi = (ethereumClient: EthereumClient | null, isConnected: b
           setVaraApi(currentApi);
           setIsReady(true);
         }
-      } catch {
+      } catch (e) {
+        console.error('[useVaraApi] init failed:', e);
         if (mounted) {
           setIsReady(false);
         }
@@ -60,7 +51,7 @@ export const useVaraApi = (ethereumClient: EthereumClient | null, isConnected: b
 
     return () => {
       mounted = false;
-      currentApi?.provider.disconnect?.();
+      provider?.disconnect?.();
     };
   }, [ethereumClient, isConnected]);
 
