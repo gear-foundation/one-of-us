@@ -33,7 +33,7 @@ function getPendingJoin(): PendingJoin | null {
   try {
     const data = localStorage.getItem(PENDING_JOIN_KEY);
     if (!data) return null;
-    
+
     const pending: PendingJoin = JSON.parse(data);
     if (Date.now() - pending.timestamp > PENDING_JOIN_TIMEOUT) {
       localStorage.removeItem(PENDING_JOIN_KEY);
@@ -58,7 +58,7 @@ export const useJoinProgram = (
   isConnected: boolean,
   publicClient: PublicClient | null,
   currentMemberCount: number,
-  onMemberCountRestore?: (count: number) => void
+  onMemberCountRestore?: (count: number) => void,
 ) => {
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,6 +69,7 @@ export const useJoinProgram = (
   const [checkingMembership, setCheckingMembership] = useState(false);
   const unwatchRef = useRef<(() => void) | null>(null);
   const addressRef = useRef<string | null>(null);
+  const tPromiseRef = useRef<number | null>(null);
 
   useEffect(() => {
     addressRef.current = address;
@@ -88,9 +89,15 @@ export const useJoinProgram = (
           unwatchRef.current = null;
           return;
         }
-        
+
         if (logs.length > 0) {
           const hash = logs[0].transactionHash;
+          if (tPromiseRef.current !== null) {
+            console.log(
+              `[JoinUs] StateChanged (L1 finalization after promise): ${Math.round(performance.now() - tPromiseRef.current)}ms`,
+            );
+            tPromiseRef.current = null;
+          }
           setTxHash(hash);
           setFinalized(true);
           setTxStatus('success');
@@ -120,35 +127,35 @@ export const useJoinProgram = (
   const checkMembership = useCallback(async () => {
     unwatchRef.current?.();
     unwatchRef.current = null;
-    
+
     setIsJoined(false);
     setLoading(false);
     setTxHash(null);
     setFinalized(false);
     setError(null);
     setTxStatus('idle');
-    
+
     if (!address || !isConnected) {
       return;
     }
 
     setCheckingMembership(true);
-    
+
     const pendingJoin = getPendingJoin();
     const hasPendingLocal = pendingJoin && pendingJoin.address === address.toLowerCase();
-    
+
     if (pendingJoin && !hasPendingLocal) {
       clearPendingJoin();
     }
 
     try {
       const result = await checkMember(address);
-      
+
       if (addressRef.current !== address) return;
-      
+
       if (result.isMember) {
         setIsJoined(true);
-        
+
         if (result.member?.tx_hash) {
           setTxHash(result.member.tx_hash);
           setFinalized(true);
@@ -158,7 +165,7 @@ export const useJoinProgram = (
           setFinalized(false);
           setTxStatus('confirming');
           setLoading(true);
-          
+
           if (hasPendingLocal) {
             onMemberCountRestore?.(pendingJoin.memberCountAtJoin);
           }
@@ -173,7 +180,7 @@ export const useJoinProgram = (
       }
     } catch {
       if (addressRef.current !== address) return;
-      
+
       if (hasPendingLocal) {
         setIsJoined(true);
         setFinalized(false);
@@ -232,10 +239,28 @@ export const useJoinProgram = (
         value: 0n,
       } as any);
 
-      const sendResult = await injected.send();
+      await injected.setReferenceBlock();
+      injected.setDefaultValidator();
+      await injected.sign();
 
-      if (sendResult === 'Reject') {
-        throw new Error('Transaction rejected by validator');
+      console.log('[JoinUs] sending with recipient: 0x00 (node auto-routes)');
+      const t0 = performance.now();
+      const promise = await injected.sendAndWaitForPromise();
+      const tAfterPromise = performance.now();
+      console.log(`[JoinUs] sendAndWaitForPromise: ${Math.round(tAfterPromise - t0)}ms`);
+      console.log(`[JoinUs] promise.code: ${promise.code.reason}`);
+      console.log(`[JoinUs] promise.payload: ${promise.payload}`);
+      tPromiseRef.current = tAfterPromise;
+
+      if (promise.code.isError) {
+        throw new Error('Transaction failed: ' + promise.code.reason);
+      }
+
+      const joined = sails.services.OneOfUs.functions.JoinUs.decodeResult(promise.payload as `0x${string}`);
+      console.log(`[JoinUs] decoded result (joined): ${joined}`);
+
+      if (!joined) {
+        throw new Error('You are already a member!');
       }
 
       setIsJoined(true);
@@ -245,9 +270,8 @@ export const useJoinProgram = (
       const newCount = currentMemberCount + 1;
       savePendingJoin(address, newCount);
       onMemberCountRestore?.(newCount);
-      
+
       registerMember(address, '');
-      startWatchingFinalization();
 
       return true;
     } catch (e: any) {
