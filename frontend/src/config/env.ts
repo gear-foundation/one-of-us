@@ -21,6 +21,7 @@ type NetworkProfile = {
   wvaraAddress: `0x${string}`;
   varaEthWs: string;
   varaEthHttp: string;
+  varaEthWsPool: string[];
 };
 
 const NETWORKS: Record<NetworkKey, NetworkProfile> = {
@@ -33,6 +34,12 @@ const NETWORKS: Record<NetworkKey, NetworkProfile> = {
     wvaraAddress: '0xB67010F2246814e5c39593ac23A925D9e9d7E5aD',
     varaEthWs: 'wss://validator-1-eth.vara.network',
     varaEthHttp: 'https://mainnet-reth-rpc.gear-tech.io',
+    varaEthWsPool: [
+      'wss://validator-1-eth.vara.network',
+      'wss://validator-2-eth.vara.network',
+      'wss://validator-3-eth.vara.network',
+      'wss://validator-4-eth.vara.network',
+    ],
   },
   hoodi: {
     chainId: 560048,
@@ -43,6 +50,12 @@ const NETWORKS: Record<NetworkKey, NetworkProfile> = {
     wvaraAddress: '0xE1ab85A8B4d5d5B6af0bbD0203EB322DF33d0464',
     varaEthWs: 'wss://vara-eth-validator-1.gear-tech.io',
     varaEthHttp: 'https://hoodi-reth-rpc.gear-tech.io',
+    varaEthWsPool: [
+      'wss://vara-eth-validator-1.gear-tech.io',
+      'wss://vara-eth-validator-2.gear-tech.io',
+      'wss://vara-eth-validator-3.gear-tech.io',
+      'wss://vara-eth-validator-4.gear-tech.io',
+    ],
   },
 };
 
@@ -70,5 +83,6 @@ export const ENV = {
   WVARA_ADDRESS: optional('VITE_WVARA_ADDRESS', profile.wvaraAddress) as `0x${string}`,
   VARA_ETH_WS: optional('VITE_VARA_ETH_WS', profile.varaEthWs),
   VARA_ETH_HTTP: optional('VITE_VARA_ETH_HTTP', profile.varaEthHttp),
+  VARA_ETH_WS_POOL: profile.varaEthWsPool,
   API_URL: optional('VITE_API_URL', 'http://localhost:3001'),
 } as const;
