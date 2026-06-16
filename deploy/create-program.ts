@@ -59,7 +59,7 @@ async function main() {
     process.exit(1);
   }
 
-  const tx = await router.createProgram(CODE_ID);
+  const tx = router.createProgramBuilder(CODE_ID).build();
   const receipt = await tx.sendAndWaitForReceipt();
 
   console.log('\n=== Transaction Receipt ===');

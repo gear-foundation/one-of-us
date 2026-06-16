@@ -71,17 +71,25 @@ async function main() {
   });
 
   console.log('Sending injected transaction...');
-  const promise = await injected.sendAndWaitForPromise();
+  const receipt = await injected.sendAndWaitForReceipt();
 
-  console.log('Raw injected response:', promise);
+  console.log('Raw injected response:', receipt);
 
-  await promise.validateSignature();
+  await receipt.validateSignature();
   console.log('Signature is valid');
 
-  console.log('Reply code:', promise.code);
-  console.log('Reply payload:', promise.payload);
+  // The receipt is either a Promise (executed) or Purged (dropped before execution)
+  if (receipt.error !== null) {
+    console.log('Transaction purged:', receipt.error, '(reason code', receipt.purgedReason, ')');
+    await api.provider.disconnect?.();
+    process.exit(1);
+  }
 
-  if (promise.payload === '0x') {
+  const { payload: replyPayload, code } = receipt.promise;
+  console.log('Reply code:', code.reason);
+  console.log('Reply payload:', replyPayload);
+
+  if (replyPayload === '0x') {
     console.log('Empty payload, nothing to decode');
     console.log('State may appear later on L1. Check with: npm run state');
     await api.provider.disconnect?.();
@@ -89,7 +97,7 @@ async function main() {
   }
 
   const result = sails.services.OneOfUs.functions.JoinUs.decodeResult(
-    promise.payload as `0x${string}`
+    replyPayload as `0x${string}`
   );
 
   console.log('Decoded result:', result);

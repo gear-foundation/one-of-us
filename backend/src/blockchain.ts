@@ -11,13 +11,23 @@ let cachedCount: number | null = null;
 let cacheTimestamp = 0;
 const CACHE_TTL_MS = 2_000; // 2 seconds
 
+interface ReplyInfo {
+  payload: string;
+  value: number;
+  code: string;
+}
+
 interface JsonRpcResponse {
   jsonrpc: string;
   id: number;
   result?: {
-    payload: string;
-    value: number;
-    code: string;
+    // Versioned Vara.eth nodes (mainnet) nest the reply and add a messages array.
+    reply?: ReplyInfo;
+    messages?: unknown[];
+    // Legacy nodes returned the reply fields flat on `result`.
+    payload?: string;
+    value?: number;
+    code?: string;
   };
   error?: {
     code: number;
@@ -92,12 +102,15 @@ export async function getBlockchainMemberCount(): Promise<number> {
       return cachedCount ?? 0;
     }
 
-    if (!response.result?.payload) {
+    // Versioned nodes nest the reply under `result.reply`; legacy nodes put it flat on `result`.
+    const payload = response.result?.reply?.payload ?? response.result?.payload;
+
+    if (!payload) {
       console.error('No payload in response');
       return cachedCount ?? 0;
     }
 
-    const count = decodeU32Le(response.result.payload);
+    const count = decodeU32Le(payload);
     
     // Update cache
     cachedCount = count;

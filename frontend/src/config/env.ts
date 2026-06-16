@@ -13,6 +13,7 @@ const optional = (key: string, defaultValue: string): string => {
 type NetworkKey = 'mainnet' | 'hoodi';
 
 type NetworkProfile = {
+  chainName: string;
   chainId: number;
   explorerUrl: string;
   explorerLabel: string;
@@ -26,6 +27,7 @@ type NetworkProfile = {
 
 const NETWORKS: Record<NetworkKey, NetworkProfile> = {
   mainnet: {
+    chainName: 'Ethereum',
     chainId: 1,
     explorerUrl: 'https://etherscan.io',
     explorerLabel: 'Etherscan',
@@ -33,7 +35,7 @@ const NETWORKS: Record<NetworkKey, NetworkProfile> = {
     routerAddress: '0x9C13FE9242dfe2ba2Cd446480A9308279aA74cb6',
     wvaraAddress: '0xB67010F2246814e5c39593ac23A925D9e9d7E5aD',
     varaEthWs: 'wss://validator-1-eth.vara.network',
-    varaEthHttp: 'https://mainnet-reth-rpc.gear-tech.io',
+    varaEthHttp: 'https://validator-1-eth.vara.network',
     varaEthWsPool: [
       'wss://validator-1-eth.vara.network',
       'wss://validator-2-eth.vara.network',
@@ -42,6 +44,7 @@ const NETWORKS: Record<NetworkKey, NetworkProfile> = {
     ],
   },
   hoodi: {
+    chainName: 'Ethereum Hoodi',
     chainId: 560048,
     explorerUrl: 'https://hoodi.etherscan.io',
     explorerLabel: 'Hoodi Etherscan',
@@ -73,7 +76,7 @@ const profile = NETWORKS[network];
 export const ENV = {
   NETWORK: network,
   CHAIN_ID: profile.chainId,
-  CHAIN_NAME: 'Ethereum',
+  CHAIN_NAME: profile.chainName,
   CHAIN_ID_HEX: `0x${profile.chainId.toString(16)}` as `0x${string}`,
   EXPLORER_URL: optional('VITE_EXPLORER_URL', profile.explorerUrl),
   EXPLORER_LABEL: optional('VITE_EXPLORER_LABEL', profile.explorerLabel),

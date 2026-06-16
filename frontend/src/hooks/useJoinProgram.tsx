@@ -240,23 +240,30 @@ export const useJoinProgram = (
       } as any);
 
       await injected.setReferenceBlock();
-      injected.setDefaultValidator();
       await injected.sign();
 
-      console.log('[JoinUs] sending with recipient: 0x00 (node auto-routes)');
+      console.log('[JoinUs] sending injected tx (node auto-routes)');
       const t0 = performance.now();
-      const promise = await injected.sendAndWaitForPromise();
+      const receipt = await injected.sendAndWaitForReceipt();
       const tAfterPromise = performance.now();
-      console.log(`[JoinUs] sendAndWaitForPromise: ${Math.round(tAfterPromise - t0)}ms`);
-      console.log(`[JoinUs] promise.code: ${promise.code.reason}`);
-      console.log(`[JoinUs] promise.payload: ${promise.payload}`);
+      console.log(`[JoinUs] sendAndWaitForReceipt: ${Math.round(tAfterPromise - t0)}ms`);
       tPromiseRef.current = tAfterPromise;
 
-      if (promise.code.isError) {
-        throw new Error('Transaction failed: ' + promise.code.reason);
+      // The receipt is either a Promise (executed, reply available) or Purged (dropped before execution)
+      if (receipt.error !== null) {
+        console.error(`[JoinUs] tx purged: ${receipt.error} (reason ${receipt.purgedReason})`);
+        throw new Error('Transaction failed: ' + receipt.error);
       }
 
-      const joined = sails.services.OneOfUs.functions.JoinUs.decodeResult(promise.payload as `0x${string}`);
+      const { payload: replyPayload, code } = receipt.promise;
+      console.log(`[JoinUs] reply code: ${code.reason}`);
+      console.log(`[JoinUs] reply payload: ${replyPayload}`);
+
+      if (code.isError) {
+        throw new Error('Transaction failed: ' + code.reason);
+      }
+
+      const joined = sails.services.OneOfUs.functions.JoinUs.decodeResult(replyPayload as `0x${string}`);
       console.log(`[JoinUs] decoded result (joined): ${joined}`);
 
       if (!joined) {

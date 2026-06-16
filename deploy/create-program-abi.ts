@@ -99,10 +99,10 @@ async function main() {
   await ethereumClient.waitForInitialization();
 
   console.log('Sending transaction...');
-  const tx = await ethereumClient.router.createProgramWithAbiInterface(
-    CODE_ID,
-    abiAddress as `0x${string}`
-  );
+  const tx = ethereumClient.router
+    .createProgramBuilder(CODE_ID)
+    .withAbiInterface(abiAddress as `0x${string}`)
+    .build();
   const receipt = await tx.sendAndWaitForReceipt();
 
   console.log('TX:', receipt.transactionHash);
