@@ -94,7 +94,7 @@ function App() {
       <FloatingCat />
       <FloatingUfo />
 
-      <div style={{ position: 'fixed', top: 16, left: 16, zIndex: 50 }}>
+      <div style={{ position: 'fixed', top: 16, left: 16, zIndex: 200 }}>
         <NetworkToggle />
       </div>
 
