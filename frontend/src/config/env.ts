@@ -78,8 +78,19 @@ const getStoredNetwork = (): NetworkKey | null => {
   }
 };
 
-// Active network: runtime toggle (localStorage) wins, else the build's network.
-const network = getStoredNetwork() ?? BUILD_NETWORK;
+// The URL param is the source of truth (survives navigation reliably, unlike
+// localStorage in some embedded contexts). localStorage is a secondary fallback.
+const getUrlNetwork = (): NetworkKey | null => {
+  try {
+    const v = new URLSearchParams(window.location.search).get('net');
+    return v === 'mainnet' || v === 'hoodi' ? v : null;
+  } catch {
+    return null;
+  }
+};
+
+// Active network: ?net= param wins, then localStorage, then the build's network.
+const network = getUrlNetwork() ?? getStoredNetwork() ?? BUILD_NETWORK;
 const profile = NETWORKS[network];
 
 // VITE_* overrides are only honoured for the network the build targeted; when the
@@ -109,7 +120,9 @@ export type { NetworkKey };
 
 export const ACTIVE_NETWORK: NetworkKey = network;
 
-// Switch the active network and reload so all providers re-init against it.
+// Switch the active network: encode it in the URL (?net=) and navigate so all
+// providers re-init against it. The URL param survives the navigation reliably;
+// localStorage is updated too as a best-effort fallback.
 export const setActiveNetwork = (key: NetworkKey): void => {
   try {
     if (key === BUILD_NETWORK) {
@@ -120,5 +133,11 @@ export const setActiveNetwork = (key: NetworkKey): void => {
   } catch {
     // ignore storage errors
   }
-  window.location.reload();
+  const url = new URL(window.location.href);
+  if (key === BUILD_NETWORK) {
+    url.searchParams.delete('net');
+  } else {
+    url.searchParams.set('net', key);
+  }
+  window.location.assign(url.toString());
 };
