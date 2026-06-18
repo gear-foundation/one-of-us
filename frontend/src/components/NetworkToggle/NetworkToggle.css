@@ -1,0 +1,36 @@
+.network-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.network-toggle-btn {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.network-toggle-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.network-toggle-btn.active {
+  background: rgba(120, 130, 255, 0.85);
+  color: #fff;
+}
+
+.network-toggle-btn.active.testnet {
+  background: rgba(255, 184, 0, 0.9);
+  color: #1a1a1a;
+}

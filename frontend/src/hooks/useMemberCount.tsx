@@ -63,5 +63,12 @@ export const useMemberCount = (sails: Sails | null, walletApi?: VaraEthApi | nul
     pausedUntilRef.current = Date.now() + COUNT_PAUSE_AFTER_JOIN_MS;
   }, []);
 
-  return { memberCount, isLoading, setMemberCount: setCount };
+  // Instant optimistic +1 (used by test mode right after a confirmed send).
+  // A short pause keeps the polling interval from overwriting before the chain read catches up.
+  const bump = useCallback(() => {
+    setMemberCount((c) => c + 1);
+    pausedUntilRef.current = Date.now() + 4000;
+  }, []);
+
+  return { memberCount, isLoading, setMemberCount: setCount, bump };
 };

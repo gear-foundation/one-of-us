@@ -8,6 +8,7 @@ import { useSails } from './hooks/useSails';
 import { useVaraApi } from './hooks/useVaraApi';
 import { useMemberCount } from './hooks/useMemberCount';
 import { useJoinProgram } from './hooks/useJoinProgram';
+import { useTestSend } from './hooks/useTestSend';
 import { isExpectedNetwork, TARGET_NETWORK_NAME } from './config/constants';
 import { ENV } from './config/env';
 
@@ -18,6 +19,8 @@ import {
   SloganCarousel,
   Stats,
   JoinSection,
+  TestModeSection,
+  NetworkToggle,
   FloatingCat,
   FloatingUfo,
 } from './components';
@@ -56,7 +59,10 @@ function App() {
   // Vara API (for transactions)
   const { varaApi, isReady: varaApiReady } = useVaraApi(ethereumClient, wallet.isConnected);
 
-  const { memberCount, setMemberCount } = useMemberCount(sails, varaApi);
+  const { memberCount, setMemberCount, bump: bumpCount } = useMemberCount(sails, varaApi);
+
+  // Walletless test-mode sender (testnet only). Bump the count instantly on a confirmed send.
+  const testSend = useTestSend(sails, bumpCount);
 
   const {
     isJoined,
@@ -88,19 +94,25 @@ function App() {
       <FloatingCat />
       <FloatingUfo />
 
-      <Header
-        address={wallet.address}
-        chainId={wallet.chainId}
-        isConnected={wallet.isConnected}
-        isConnecting={wallet.isConnecting}
-        isMetaMaskInstalled={wallet.isMetaMaskInstalled}
-        isCorrectNetwork={isCorrectNetwork}
-        targetNetworkName={TARGET_NETWORK_NAME}
-        error={wallet.error}
-        onConnect={handleConnect}
-        onDisconnect={wallet.disconnect}
-        onSwitchNetwork={wallet.switchToExpectedNetwork}
-      />
+      <div style={{ position: 'fixed', top: 16, left: 16, zIndex: 50 }}>
+        <NetworkToggle />
+      </div>
+
+      {!ENV.IS_TESTNET && (
+        <Header
+          address={wallet.address}
+          chainId={wallet.chainId}
+          isConnected={wallet.isConnected}
+          isConnecting={wallet.isConnecting}
+          isMetaMaskInstalled={wallet.isMetaMaskInstalled}
+          isCorrectNetwork={isCorrectNetwork}
+          targetNetworkName={TARGET_NETWORK_NAME}
+          error={wallet.error}
+          onConnect={handleConnect}
+          onDisconnect={wallet.disconnect}
+          onSwitchNetwork={wallet.switchToExpectedNetwork}
+        />
+      )}
 
       <main className="main-content">
         <SloganCarousel />
@@ -130,26 +142,37 @@ function App() {
 
         <Stats memberCount={memberCount} />
 
-        <JoinSection
-          isConnected={wallet.isConnected}
-          isConnecting={wallet.isConnecting}
-          isMetaMaskInstalled={wallet.isMetaMaskInstalled}
-          isJoined={isJoined}
-          loading={loading}
-          sailsLoading={sailsLoading}
-          sailsError={sailsError}
-          varaApiReady={varaApiReady}
-          sailsReady={!!sails}
-          error={wallet.error}
-          joinError={joinError}
-          txHash={txHash}
-          finalized={finalized}
-          memberCount={memberCount}
-          txStatus={txStatus}
-          checkingMembership={checkingMembership}
-          onConnect={handleConnect}
-          onJoin={handleJoin}
-        />
+        {ENV.IS_TESTNET ? (
+          <TestModeSection
+            sailsReady={!!sails}
+            sailsLoading={sailsLoading}
+            sailsError={sailsError}
+            status={testSend.status}
+            error={testSend.error}
+            onSend={testSend.send}
+          />
+        ) : (
+          <JoinSection
+            isConnected={wallet.isConnected}
+            isConnecting={wallet.isConnecting}
+            isMetaMaskInstalled={wallet.isMetaMaskInstalled}
+            isJoined={isJoined}
+            loading={loading}
+            sailsLoading={sailsLoading}
+            sailsError={sailsError}
+            varaApiReady={varaApiReady}
+            sailsReady={!!sails}
+            error={wallet.error}
+            joinError={joinError}
+            txHash={txHash}
+            finalized={finalized}
+            memberCount={memberCount}
+            txStatus={txStatus}
+            checkingMembership={checkingMembership}
+            onConnect={handleConnect}
+            onJoin={handleJoin}
+          />
+        )}
       </main>
 
       <Footer />
