@@ -133,14 +133,27 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* Clear the fixed network toggle (top-left) and wallet button (top-right),
+     and flow content from the top so there are no awkward vertical gaps. */
   .main-content {
-    padding: 20px 15px;
+    padding: 76px 16px 28px;
+    justify-content: flex-start;
+    min-height: auto;
+  }
+
+  .title-container {
+    margin: 16px 0;
   }
 
   .main-title {
     font-size: 2.5rem;
     flex-direction: column;
     gap: 5px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
+  }
+
+  .description {
+    font-size: 0.9rem;
+    margin-bottom: 24px;
   }
 }

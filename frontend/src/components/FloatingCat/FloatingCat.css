@@ -25,11 +25,9 @@
   }
 }
 
+/* Hidden on mobile to keep the layout clean (it overlapped the slogan/title). */
 @media (max-width: 768px) {
   .floating-cat {
-    width: 80px;
-    height: 80px;
-    top: 10%;
-    left: 5%;
+    display: none;
   }
 }

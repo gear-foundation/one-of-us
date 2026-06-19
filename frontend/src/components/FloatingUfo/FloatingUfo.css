@@ -34,14 +34,9 @@
   }
 }
 
-/* Responsive */
+/* Responsive — hidden on mobile to keep the layout clean. */
 @media (max-width: 768px) {
   .floating-ufo {
-    right: 2%;
-    top: 20%;
-  }
-
-  .floating-ufo img {
-    width: 240px;
+    display: none;
   }
 }
