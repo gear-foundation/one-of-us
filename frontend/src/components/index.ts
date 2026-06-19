@@ -9,3 +9,5 @@ export { Stats } from './Stats/Stats';
 export { JoinSection } from './JoinSection/JoinSection';
 export { FloatingCat } from './FloatingCat/FloatingCat';
 export { FloatingUfo } from './FloatingUfo/FloatingUfo';
+export { NetworkToggle } from './NetworkToggle/NetworkToggle';
+export { TestModeSection } from './TestModeSection/TestModeSection';
